@@ -26,7 +26,14 @@ COMMERCIAL_INTENT_PATTERNS = [
     r'\b(?:lichkaga|lichkaga\s*yoz|lsga|ls\s*yoz|v\s*ls|dm|direkt)\b',
     # Trade and barter
     r'\b(?:obmen|barter|almashtirami[sz]|ijarag[a-z]*|arendag[a-z]*)\b',
+    # Product arrivals, sets, wholesale, and promotions
+    r'\b(?:keldi|kelgan|sotuvda|mavjud|nabor|komplekt|optom|donag[a-z]*|aksiya|chegirma|skidk[a-z]*)\b',
+    # Dot prices or grouped digits: e.g. 5.000, 15.000, 30.000, 50 000, 50000 som
+    r'\b(?:\d{1,3}(?:[\.\s]\d{3})+(?:\s*(?:som|so\'m|ming|uzs|rubl|\$))?)\b',
+    # Services: e.g. xizmati bor, xizmatlar, remont, usta
+    r'\b(?:xizmati\s*bor|xizmatlar|xizmat|buyurtma)\b',
 ]
+
 
 # Genuine personal questions or seeker phrases that lack commercial contact info
 GENUINE_SEEKER_PATTERNS = [

@@ -37,14 +37,29 @@ class ModerationLog(Base):
     detected_links: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     media_metadata: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
-    # Backwards compatibility hybrid properties
-    @hybrid_property
-    def message_id(self) -> int:
-        return self.telegram_message_id
+    # Legacy columns present in existing databases
+    message_id: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True, default=0)
+    action: Mapped[Optional[str]] = mapped_column(String(32), nullable=True, default="delete")
+    created_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True, default=utc_now)
 
-    @hybrid_property
-    def created_at(self) -> datetime:
-        return self.deleted_at
+    def __init__(self, **kwargs):
+        if "telegram_message_id" in kwargs and "message_id" not in kwargs:
+            kwargs["message_id"] = kwargs["telegram_message_id"]
+        elif "message_id" in kwargs and "telegram_message_id" not in kwargs:
+            kwargs["telegram_message_id"] = kwargs["message_id"]
+
+        if "deleted_at" in kwargs and "created_at" not in kwargs:
+            kwargs["created_at"] = kwargs["deleted_at"]
+        elif "created_at" in kwargs and "deleted_at" not in kwargs:
+            kwargs["deleted_at"] = kwargs["created_at"]
+
+        if "violation_type" in kwargs and "action" not in kwargs:
+            kwargs["action"] = kwargs["violation_type"]
+        elif "action" in kwargs and "violation_type" not in kwargs:
+            kwargs["violation_type"] = kwargs["action"]
+
+        super().__init__(**kwargs)
+
 
     @property
     def text_snippet(self) -> str:
