@@ -40,7 +40,7 @@ class Settings(BaseSettings):
         description="Enable local Tesseract OCR for photos and video keyframes"
     )
     MAX_VIDEO_FRAMES_SAMPLE: int = Field(
-        default=5,
+        default=3,
         description="Max keyframes to sample from video for local OCR"
     )
     MAX_MEDIA_DOWNLOAD_MB: int = Field(

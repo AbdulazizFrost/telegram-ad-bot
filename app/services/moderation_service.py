@@ -29,14 +29,42 @@ def _clean_str(val: Any) -> Optional[str]:
     return str(val)
 
 
+import time
+from typing import Optional, Any, Dict, Tuple
+
+_ADMIN_CACHE: Dict[Tuple[int, int], Tuple[bool, float]] = {}
+_CACHED_BOT_USERNAME: Optional[str] = None
+
+
 async def is_group_admin(bot: Bot, chat_id: int, user_id: int) -> bool:
-    """Check if a user is an administrator or owner of the Telegram group."""
+    """Check if a user is an administrator or owner of the Telegram group (5-minute TTL cache)."""
+    now = time.monotonic()
+    key = (chat_id, user_id)
+    cached = _ADMIN_CACHE.get(key)
+    if cached and now < cached[1]:
+        return cached[0]
+
     try:
         member = await bot.get_chat_member(chat_id=chat_id, user_id=user_id)
-        return member.status in (ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.CREATOR)
+        is_adm = member.status in (ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.CREATOR)
+        _ADMIN_CACHE[key] = (is_adm, now + 300.0)
+        return is_adm
     except Exception as e:
         logger.warning(f"Error checking group admin status for user {user_id} in {chat_id}: {e}")
         return False
+
+
+async def get_cached_bot_username(bot: Bot) -> str:
+    """Cache bot username to avoid redundant network calls on message moderation."""
+    global _CACHED_BOT_USERNAME
+    if _CACHED_BOT_USERNAME:
+        return _CACHED_BOT_USERNAME
+    try:
+        bot_info = await bot.get_me()
+        _CACHED_BOT_USERNAME = bot_info.username or "bot"
+        return _CACHED_BOT_USERNAME
+    except Exception:
+        return "bot"
 
 
 async def auto_delete_notice(bot: Bot, chat_id: int, message_id: int, delay_seconds: int):
@@ -138,8 +166,7 @@ async def process_group_message(bot: Bot, message: Message, session: AsyncSessio
         return False
 
     # Step 5: Check Role Rules (Taxi vs Regular User)
-    bot_info = await bot.get_me()
-    bot_username = bot_info.username or "bot"
+    bot_username = await get_cached_bot_username(bot)
     mention_display = f"@{username}" if username else f"<a href='tg://user?id={user_id}'>{first_name or 'Foydalanuvchi'}</a>"
 
     sub_status = subscription.plan if (has_sub and subscription) else "none"

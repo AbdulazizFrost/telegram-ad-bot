@@ -83,9 +83,15 @@ async def analyze_photo_message(
             metadata={"ocr": "disabled"}
         )
 
-    # Pick best photo size (Telegram provides thumbs in ascending size order)
-    # The last one is the highest resolution
-    target_photo = photo_sizes[-1] if photo_sizes else None
+    # Pick optimal photo size (around 800-1280px for super fast download and crisp OCR)
+    target_photo = None
+    if photo_sizes:
+        for p in photo_sizes:
+            if max(getattr(p, "width", 0) or 0, getattr(p, "height", 0) or 0) >= 800:
+                target_photo = p
+                break
+        if not target_photo:
+            target_photo = photo_sizes[-1]
     if not target_photo:
         res = classify_text(caption, entities=entities)
         return MediaAnalysisResult(
