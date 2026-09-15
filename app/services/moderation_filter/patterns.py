@@ -16,7 +16,19 @@ HIGH_SALE_PATTERNS = [
     "ishchi kerak", "ishchilar kerak", "ishchi garak", "ishchilar garak",
     "ishga olamiz", "ishga taklif", "ishga qabul", "ishga marhamat",
     "vakansiya", "vakansiyalar", "ayliqni galishamiz", "oylikni kelishamiz",
-    "oylik maosh", "oshpaz kerak", "ofitsiant kerak", "sotuvchi kerak"
+    "oylik maosh", "oshpaz kerak", "ofitsiant kerak", "sotuvchi kerak",
+    # Digital products, creation, custom services (+50)
+    "yaratib beramiz", "yaratamiz", "tayyorlab beramiz", "tayyorlaymiz",
+    "yasab beramiz", "yasaymiz", "qilib beramiz",
+    "taklifnoma-sayt", "taklifnoma sayt", "taklifnoma qilamiz", "sayt yaratamiz",
+    "sayt qilamiz", "sayt yaratish", "sayt tayyorlaymiz", "sayt yaratib",
+    "maxsus taklif", "qaynoq taklif", "biznes sayt",
+    "somdan boshlanadi", "so'mdan boshlanadi", "narxlar boshlanadi",
+    # Service calls and orders (+50)
+    "buyurtma berish uchun", "buyurtma berish", "bizga murojaat qiling",
+    "kimga kerak bolsa yozsin", "kimga kerak bo'lsa yozsin",
+    "kerak bolsa yozsin", "kerak bo'lsa yozsin",
+    "kerak bolsa yozing", "kerak bo'lsa yozing"
 ]
 
 # High score signals: Driver taxi ride offers (+50 each)
@@ -28,7 +40,12 @@ HIGH_TAXI_PATTERNS = [
     "yuramiz", "yuraman", "qatnaymiz", "qatnayman",
     "salon bosh", "salon bo'sh", "zapravkada turibmiz", "zapravkadamiz",
     "moshina bor", "mashina bor", "yolovchi olamiz", "yo'lovchi olamiz",
-    "taksistman", "taksichiman"
+    "taksistman", "taksichiman",
+    # Taxi routes and cheap taxi offers (+50)
+    "taxsi toshkenga", "taksi toshkenga", "taxsi toshkentga", "taksi toshkentga",
+    "taxsi samarqandga", "taksi samarqandga", "taxsi gulistonga", "taksi gulistonga",
+    "arzon taksi", "arzon taxsi", "taxsi arzon", "taksi arzon",
+    "toshkenga arzon", "toshkentga arzon", "samarqandga arzon", "gulistonga arzon"
 ]
 
 # High score signals: Commercial calls-to-action & direct contact solicitation (+40 each)
@@ -36,6 +53,8 @@ HIGH_CONTACT_PATTERNS = [
     "murojaat uchun", "murojat uchun", "murojaat qiling", "murojaat:",
     "aloqa uchun", "bog'lanish uchun",
     "zakaz uchun", "buyurtma uchun", "batafsil ma'lumot uchun",
+    "batafsil ma'lumot uchun yozing", "ma'lumot uchun yozing", "batafsil yozing",
+    "dm ga yozing", "dmga yozing", "dm ga", "dmga", "directga", "direktga",
     "24/7", "kun-u tun", "admin:", "zakaz:", "tel:", "telefon:", "nomer:"
 ]
 

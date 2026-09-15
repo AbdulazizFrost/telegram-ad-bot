@@ -100,8 +100,8 @@ def classify_text(
             has_contact_phrase = True
             break
 
-    # Signal: PM solicitation ('lichkaga', 'lichgaga', 'lsga', 'direkt')
-    has_pm_request = bool(re.search(r'\b(?:lich[kg]a[a-z]*|ls(?:ga)?|pm(?:ga)?|direkt(?:ga)?)\b', normalized))
+    # Signal: PM solicitation ('lichkaga', 'lichgaga', 'lsga', 'direkt', 'direct', 'dm')
+    has_pm_request = bool(re.search(r'\b(?:lich[kg]a[a-z]*|ls(?:ga)?|pm(?:ga)?|direkt(?:ga)?|direct(?:ga)?|dm(?:ga)?)\b', normalized))
     if has_pm_request:
         taxi_or_travel = bool(re.search(r'\b(?:ta[kx]si[a-z]*|mashina|moshina|yurami[a-z]*|qatnaymi[a-z]*|odam|joy|pochta|ketsa|borsa|ketadi|boradi)\b', normalized))
         if taxi_or_travel:
@@ -145,8 +145,15 @@ def classify_text(
     # Negative Signals: Inquiries, questions, recommendation requests
     has_question_mark = "?" in raw_text
     question_words = [q for q in QUESTION_PATTERNS if re.search(r'\b' + re.escape(q) + r'\b', normalized)]
-    # An imperative call to PM without '?' (e.g. 'kim ketsa lichkaga yozsin') is an offer, not an inquiry
-    if has_pm_request and not has_question_mark:
+
+    # Distinguish rhetorical marketing hook questions from genuine user inquiries:
+    # If the message contains explicit commercial sales, taxi offers, or calls to action,
+    # the question mark is just a sales hook (e.g. "To'yga taklifnoma kerakmi? Biz yaratamiz!").
+    has_strong_ad_offer = is_sale_related or is_taxi_related or has_contact_phrase
+    if has_strong_ad_offer:
+        is_inquiry = False
+    elif has_pm_request and not has_question_mark:
+        # An imperative call to PM without '?' (e.g. 'kim ketsa lichkaga yozsin') is an offer, not an inquiry
         is_inquiry = False
     else:
         is_inquiry = has_question_mark or len(question_words) > 0

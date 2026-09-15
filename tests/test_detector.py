@@ -193,3 +193,19 @@ def test_casual_pm_mention_not_flagged():
     for msg in casual_pm:
         is_ad, reason = is_ad_text(msg)
         assert not is_ad, f"Casual PM falsely flagged as ad: '{msg}' (reason: {reason})"
+
+
+def test_digital_services_and_taxi_routes_ads_detected():
+    """Detect digital services, website creation, invitation sites, and short taxi ads."""
+    ads = [
+        "Taxsi toshkenga arzon",
+        "Kimga kerak bolsa yozsin",
+        "To'yga taklifnoma kerakmi? Siz uchun zamonaviy va chiroyli taklifnoma-sayt yaratib beramiz! Narxlar 150 000 so'mdan boshlanadi. Batafsil ma'lumot uchun lichkaga yozing!",
+        "Sifatli sayt kerak bo'lsa, bizga murojaat qiling! Biz biznes, portfolio... saytlarni yaratamiz. Buyurtma berish uchun DM ga yozing.",
+        "MAXSUS TAKLIF! To'yingiz uchun oddiy qog'oz taklifnoma o'rniga zamonaviy elektron taklifnoma-sayt yarating. Batafsil ma'lumot uchun yozing.",
+        "To'y uchun zamonaviy taklifnoma-sayt kerakmi? DM ga yozing.",
+        "Taklifnoma-sayt qilamiz",
+    ]
+    for ad in ads:
+        is_ad, reason = is_ad_text(ad)
+        assert is_ad, f"Digital service / taxi ad missed: '{ad}' (reason: {reason})"
