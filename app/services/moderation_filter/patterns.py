@@ -40,10 +40,22 @@ HIGH_SALE_PATTERNS = [
     "a'zo boling", "a'zo bo'ling", "kanalimizda barcha", "telegram kanalimizda",
     # Commercial PM solicitation formats
     "qiziqqanlar lichkaga", "qiziqqanlar yozsin", "qiziqqanlar dm",
-    "narxi lichkada", "narx lichkada", "batafsil malumot lichkada",
-    "batafsil ma'lumot lichkada", "malumot lichkada", "ma'lumot lichkada",
+    "narxi lichkada", "narx lichkada", "narxini lichkada", "narxini lichkaga", "narxi lichka",
+    "bahosi lichkada", "bahosi lichkaga",
+    "batafsil malumot lichkada", "batafsil ma'lumot lichkada", "malumot lichkada", "ma'lumot lichkada",
     "batafsil lichkada", "narxi lichkaga",
     "buyurtma uchun yozing", "buyurtma uchun", "buyurtma berish uchun", "buyurtma berish", "bizga murojaat qiling",
+    "buyurtma olamiz", "buyurtma olaman", "zakaz olamiz", "zakaz olaman",
+    "buyurtma qabul qilamiz", "zakaz qabul qilamiz", "buyurtma asosida", "zakaz asosida",
+    # Service availability & cleaning
+    "xizmatimiz mavjud", "xizmatlar mavjud", "xizmatlarimiz mavjud", "xizmat mavjud",
+    "ximchistka", "ximchistka xizmati", "gilam yuvish", "divan yuvish",
+    "polirovka", "moykalash", "avtomoyka",
+    # Channel and group invitations
+    "kanalimizga ulaning", "kanalga ulaning",
+    "kanalimizga qo'shiling", "kanalga qo'shiling", "guruhimizga qo'shiling", "guruhga qo'shiling",
+    "kanalimizga kiring", "kanalga kiring",
+    "podpisivaytes na nash telegram", "podpisivaytes na nash",
     "kimga kerak bolsa yozsin", "kimga kerak bo'lsa yozsin", "kerak bolsa yozsin", "kerak bo'lsa yozsin",
     "kerak bolsa yozing", "kerak bo'lsa yozing",
     "kimga kerak bolsa yozib qoying", "kimga kerak bo'lsa, yozib qo'ying",
@@ -65,14 +77,22 @@ HIGH_TAXI_PATTERNS = [
     "joy bor", "bitta joy bor", "ikkita joy bor", "1 ta joy bor", "2 ta joy bor", "3 ta joy bor", "4 ta joy bor",
     "yuramiz", "yuraman", "qatnaymiz", "qatnayman",
     "salon bosh", "salon bo'sh", "zapravkada turibmiz", "zapravkadamiz",
-    "moshina bor", "mashina bor", "yolovchi olamiz", "yo'lovchi olamiz",
+    "moshina bor", "mashina bor", "taksi bor", "taxsi bor", "taxi bor",
+    "moshinamiz bor", "mashinamiz bor",
+    "yolovchi olamiz", "yo'lovchi olamiz", "kishi olamiz", "kishi olaman",
+    "1 kishi kerak", "2 kishi kerak", "3 kishi kerak", "4 kishi kerak",
+    "1 ta odam kerak", "2 ta odam kerak", "bitta odam kerak", "ikkita odam kerak",
+    "odam kerak ketamiz", "odam kerak ketdik", "kishi kerak ketamiz", "kishi kerak ketdik", "odam garak",
     "taksistman", "taksichiman",
     # Taxi routes and cheap taxi offers (+50)
     "taxsi toshkenga", "taksi toshkenga", "taxsi toshkentga", "taksi toshkentga",
     "taxsi samarqandga", "taksi samarqandga", "taxsi gulistonga", "taksi gulistonga",
+    "taksi toshkent", "taksi samarqand", "taksi buxoro", "taksi farg'ona", "taksi andijon", "taksi namangan",
+    "taxsi toshkent", "taxsi samarqand", "taxsi buxoro",
     "arzon taksi", "arzon taxsi", "taxsi arzon", "taksi arzon",
     "toshkenga arzon", "toshkentga arzon", "samarqandga arzon", "gulistonga arzon",
-    "taksi po gorodu", "taxsi po gorodu", "zakaz v telegram"
+    "taksi po gorodu", "taxsi po gorodu", "zakaz v telegram",
+    "svobodnie mesta", "mesta yest", "viezjaem", "beru poputchikov"
 ]
 
 # High score signals: Commercial calls-to-action & direct contact solicitation (+40 each)
@@ -118,7 +138,11 @@ ACTIVE_OFFER_PATTERNS = [
     "yasab beramiz", "yasaymiz", "qilib beramiz", "tamirlaymiz", "ta'mirlaymiz",
     "sotamiz", "sotaman", "yetkazib beramiz", "ishga olamiz", "ishga qabul",
     "ishga taklif", "imkoniyati mavjud",
-    "odam olamiz", "odam olaman", "joy bor", "bitta joy bor", "ikkita joy bor",
+    "buyurtma olamiz", "buyurtma olaman", "zakaz olamiz", "zakaz olaman",
+    "yuvamiz", "tozalaymiz", "polirovka",
+    "odam olamiz", "odam olaman", "kishi olamiz", "kishi olaman",
+    "joy bor", "bitta joy bor", "ikkita joy bor",
+    "taksi bor", "taxsi bor", "svobodnie mesta", "viezjaem",
     "yuramiz", "qatnaymiz", "salon bosh", "salon bo'sh", "zapravkada turibmiz",
     "taksistman", "taksichiman", "zakazat", "v nalichii", "kupit nedorogo",
     "prodayu", "prodam", "onlayn zarabotok", "onlayn ishlash", "onlayn ish",
@@ -152,7 +176,7 @@ INTERROGATIVE_WORDS = [
     "bormikin", "bormikan", "rostmikin", "rostmikan", "kerakmi", "mumkinmi",
     "bo'ladimi", "boladimi", "emasmi", "yuradimi", "boshlandimi", "ochildimi",
     "beriladimi", "qilinadimi", "qiladimi", "keladimi", "ketadimi",
-    "aksiyami", "chegirmami", "skidkami",
+    "aksiyami", "chegirmami",
     "deb eshitdim", "deb aytishdi", "deb yozishibdi", "deyishyapti", "deyapti"
 ]
 

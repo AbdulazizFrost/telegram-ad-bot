@@ -254,3 +254,42 @@ def test_reported_speech_and_commercial_inquiries_not_flagged():
         is_ad, reason = is_ad_text(msg)
         assert not is_ad, f"Inquiry falsely flagged as ad: '{msg}' (reason: {reason})"
 
+
+def test_comprehensive_user_scenarios():
+    """Test 10 realistic user scenarios: clients, drivers, businesses, borderline cases, and Russian language."""
+    cases = [
+        # 1. Clients looking for services / masters / goods (NOT ads)
+        ("Menga to'y uchun yaxshi taklifnoma tayyorlaydigan usta kerak, kimni tavsiya qilasiz?", False),
+        ("Kir yuvish mashinam buzilib qoldi, yaxshi remont qiladigan usta bormi?", False),
+        ("Toshkentdan Samarqandga borishim kerak, bugun soat 5 larda yuradigan taksi bormi?", False),
+        ("Kvartira ijaraga olmoqchiman 2 xonali Chilonzordan, kimda variant bor?", False),
+        # 2. Short messages (Inquiry vs Short Ad)
+        ("Taksi bormi?", False),
+        ("Taksi bor", True),
+        ("Sotiladi", True),
+        ("Joy bor", True),
+        ("Yuramiz", True),
+        # 3. Product ads & craft orders
+        ("Uy sharoitida pishirilgan tort va shirinliklarga buyurtma olamiz!", True),
+        ("Barcha turdagi avtomobillarni sifatli moykalash va polirovka qilish xizmatimiz mavjud.", True),
+        ("Ximchistka xizmati gilam va divanlarni yuvamiz", True),
+        # 4. Taxi variations (Driver offers)
+        ("Toshkentga taksi bor, 2 kishi olamiz", True),
+        ("Toshkentga 1 kishi kerak ketamiz", True),
+        ("Toshkentga bitta odam kerak ketdik", True),
+        ("Такси Ташкент Бухара выезжаем сегодня в 18:00, есть свободные места.", True),
+        # 5. Channel promotions
+        ("Kanalimizga ulaning va eng so'nggi yangiliklardan xabardor bo'ling: @mybusiness_uz", True),
+        ("Kanalimizga qo'shiling barcha yangiliklar shu yerda @yangiliklar", True),
+        ("Подписывайтесь на наш телеграм канал со скидками: @skidki_tashkent", True),
+        # 6. Concealed price in PM
+        ("Narxini lichkada aytaman yozvorila", True),
+        # 7. Borderline lost and found (has phone number, but NOT ad)
+        ("Hujjatlarimni yo'qotib qo'ydim, topib olgan bo'lsa xabar bering: +998901112233", False),
+        ("Потерялся щенок хаски, нашедшего просим позвонить по номеру: +998901112233", False),
+    ]
+    for text, expected in cases:
+        is_ad, reason = is_ad_text(text)
+        assert is_ad == expected, f"Scenario failed: '{text}' (expected={expected}, got={is_ad}, reason={reason})"
+
+

@@ -142,9 +142,12 @@ def classify_text(
     # Check for Channel/Bot mentions (@username)
     mentions = re.findall(r'@([a-zA-Z0-9_]{4,})', raw_text)
     if mentions:
-        if is_sale_related or is_taxi_related or has_contact_phrase or has_pm_request:
+        has_channel_word = bool(re.search(r'\b(?:kanal[a-z]*|guruh[a-z]*|podpisk[a-z]*|podpis[a-z]*|obuna|qoshil[a-z]*|qo\'shil[a-z]*)\b', normalized))
+        if is_sale_related or is_taxi_related or has_contact_phrase or has_pm_request or has_channel_word:
             score += 30.0
             reasons.append(f"Profil/kanal havolasi: @{mentions[0]}")
+            if has_channel_word and not is_sale_related:
+                is_sale_related = True
 
     # Negative Signals: Inquiries, questions, recommendation requests
     has_question_mark = "?" in raw_text
