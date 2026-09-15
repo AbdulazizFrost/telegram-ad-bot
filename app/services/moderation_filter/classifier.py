@@ -19,6 +19,7 @@ from app.services.moderation_filter.patterns import (
     ACTIVE_CTA_PATTERNS,
     FIRST_PERSON_INQUIRY_PATTERNS,
     INTERROGATIVE_WORDS,
+    LOST_AND_FOUND_PATTERNS,
 )
 from app.config import settings
 
@@ -109,7 +110,7 @@ def classify_text(
     if has_pm_request:
         taxi_or_travel = bool(re.search(
             r'\b(?:ta[kx]si[a-z]*|mashina|moshina|yurami[a-z]*|qatnaymi[a-z]*|odam|joy|pochta|ketsa|borsa|ketadi|boradi'
-            r'|edem|yedem|viezja[a-z]*|mesta|mest|chelovek|chel|poputchik[a-z]*|passajir[a-z]*|beru|vozmu)\b',
+            r'|edem|yedem|viezja[a-z]*|mesta|mest|chelovek|chel|poputchik[a-z]*|passajir[a-z]*|beru|vozmu|berem)\b',
             normalized
         ))
         if taxi_or_travel:
@@ -123,11 +124,11 @@ def classify_text(
             score += 15.0
             reasons.append("Shaxsiy xabarga (lichkaga) yozish taklifi")
 
-    # Signal: Driver offer verbs ('беру', 'возьму') with passenger/transport terms
-    driver_beru_offer = bool(re.search(r'\b(?:beru|vozmu|zaberu)\b(?:\s+(?:\d+|chelovek|chel|lyudey|passajir|poputchik|odam|kishi|posilk|pocht|gruz)|\s*$)', normalized))
+    # Signal: Driver offer verbs ('беру', 'возьму', 'берем') with passenger/transport terms
+    driver_beru_offer = bool(re.search(r'\b(?:beru|vozmu|zaberu|berem)\b(?:\s+(?:\d+|chelovek|chel|lyudey|passajir|poputchik|odam|kishi|posilk|pocht|gruz)|\s*$)', normalized))
     if driver_beru_offer and not is_taxi_related:
         score += 50.0
-        reasons.append("Taksi haydovchisi mijoz olish taklifi ('беру/возьму')")
+        reasons.append("Taksi haydovchisi mijoz olish taklifi ('беру/возьму/берем')")
         is_taxi_related = True
 
     # Signal: Phone numbers (+25 alone, +45 if commercial/transit context)
@@ -160,6 +161,11 @@ def classify_text(
             if has_channel_word and not is_sale_related:
                 is_sale_related = True
 
+    # Lost & found non-commercial exception (e.g., lost pets, passports, keys with contact phone)
+    has_lost_found = any(re.search(r'\b' + re.escape(p) + r'\b', normalized) or p in normalized for p in LOST_AND_FOUND_PATTERNS)
+    if has_lost_found and not is_sale_related and not is_taxi_related:
+        score = 0.0
+
     # Negative Signals: Inquiries, questions, recommendation requests
     has_question_mark = "?" in raw_text
     question_words = [q for q in (QUESTION_PATTERNS + INTERROGATIVE_WORDS) if re.search(r'\b' + re.escape(q) + r'\b', normalized)]
@@ -188,7 +194,7 @@ def classify_text(
         is_inquiry = False
     elif has_active_offer and not (has_question_mark or has_verb_question):
         is_inquiry = False
-    elif has_active_offer and has_question_mark and not ('bormi' in normalized or 'qidiryapman' in normalized):
+    elif has_active_offer and has_question_mark and not ('bormi' in normalized or 'qidiryapman' in normalized or 'ishu' in normalized):
         # E.g. 'Kimga ish kerak? Onlayn ishlash imkoniyati mavjud.' -> Rhetorical question selling an offer
         is_inquiry = False
     else:

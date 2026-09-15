@@ -66,7 +66,20 @@ HIGH_SALE_PATTERNS = [
     "zakazat", "zakaz v telegram", "nedoroguyu odejdu", "nedoroguyu",
     "pishite v lichku", "v nalichii", "podpisivaytes", "nash kanal",
     "kursi", "onlayn zarabotok", "zarabotok", "kupit nedorogo", "prodayu",
-    "prodam", "prodayetsya", "tsena v ls", "podrobnosti v ls"
+    "prodam", "prodayetsya", "tsena v ls", "podrobnosti v ls",
+    "rasprodaja", "samie nizkie tseni", "nizkie tseni", "deshevo",
+    "besplatnaya dostavka", "dostavka besplatno", "dostavka besplatnaya",
+    "v chest otkritiya", "kafe otkrilos",
+    "remont kvartir", "remont ofisov", "pod klyuch",
+    "stroitelnaya kompaniya", "postroit dom", "postroim dom",
+    "uyutnaya gostinitsa", "uyutnaya gostinica", "gostinitsa", "gostinica",
+    "broniruyte", "bronirovanie",
+    "na zakaz", "dlya zakaza", "zakaz po telefonu",
+    "domashnie torti", "torti na zakaz",
+    "moyka i polirovka", "ximchistka salona",
+    "salon krasoti", "manikyur i pedikyur",
+    "zvonite pryamo seychas", "zvonite v lyuboe vremya",
+    "uspeyte zapisatsya", "zapisivaytes"
 ]
 
 # High score signals: Driver taxi ride offers (+50 each)
@@ -89,14 +102,25 @@ HIGH_TAXI_PATTERNS = [
     "taxsi samarqandga", "taksi samarqandga", "taxsi gulistonga", "taksi gulistonga",
     "taksi toshkent", "taksi samarqand", "taksi buxoro", "taksi farg'ona", "taksi andijon", "taksi namangan",
     "taxsi toshkent", "taxsi samarqand", "taxsi buxoro",
+    "taksi tashkent", "taxsi tashkent", "taksi samarkand", "taxsi samarkand",
+    "taksi buxara", "taxsi buxara",
+    "luchshee taksi", "taksi do", "taxsi do",
+    "viezd utrom", "viezd vecherom", "viezd v", "budu viezjat", "viezd",
+    "viyezd utrom", "viyezd vecherom", "viyezd v", "budu viyezjat", "viyezd",
+    "salon pustoy", "pustoy salon",
+    "berem lyudey", "berem passajirov", "berem poputchikov", "berem posilki",
+    "berem chelovek", "berem chel",
     "arzon taksi", "arzon taxsi", "taxsi arzon", "taksi arzon",
     "toshkenga arzon", "toshkentga arzon", "samarqandga arzon", "gulistonga arzon",
     "taksi po gorodu", "taxsi po gorodu", "zakaz v telegram",
     "svobodnie mesta", "mesta yest", "viezjaem", "beru poputchikov",
     "est mesta", "yest mesta", "mesta dlya", "ostalos mesta", "ostalos mesto",
     "svobodno mesta", "svobodno mesto", "mesta est",
+    "mesta svobodno", "mesto svobodno", "svobodnix mesta", "svobodnix mest", "svobodnoe mesto",
+    "est 2 svobodnix mesta", "est 3 svobodnix mesta", "est 1 svobodnoe mesto",
     "edem v tashkent", "edem v samarkand", "edem v buxaru", "edem v ferganu",
-    "tashkent edem", "samarkand edem", "buxara edem"
+    "tashkent edem", "samarkand edem", "buxara edem",
+    "edu v tashkent"
 ]
 
 # High score signals: Commercial calls-to-action & direct contact solicitation (+40 each)
@@ -109,6 +133,7 @@ HIGH_CONTACT_PATTERNS = [
     "za podrobnostyami v ls", "za podrobnostyami v lichku",
     "voprosi v ls", "voprosi v lichku", "vse voprosi v ls",
     "pisat v ls", "pisat v lichku",
+    "zvonite pryamo seychas", "zvonite po telefonu", "zvonit po nomeru", "zvonite dlya zakaza",
     "24/7", "kun-u tun", "admin:", "zakaz:", "tel:", "telefon:", "nomer:"
 ]
 
@@ -130,7 +155,12 @@ QUESTION_PATTERNS = [
     "bormi", "bormikin", "bormikan", "bomi", "bormi?",
     "bilasizmi", "bilasilarmi", "biladigan", "biladiganlar", "bilganlar",
     "aytvorilar", "aytvorin", "aytib yuboring", "maslahat bering",
-    "qaysi", "qanaqa", "qanday", "kerak edi", "kerakmi", "qidiryapman"
+    "qaysi", "qanaqa", "qanday", "kerak edi", "kerakmi", "qidiryapman",
+    "kto", "gde", "kuda", "otkuda", "skolko", "pochem",
+    "kakoy", "kakaya", "kakoe", "kakie", "kakom", "kakuyu",
+    "kogda", "pochemu", "zachem", "kak",
+    "podskajite", "posovetuyte", "porekomenduyte",
+    "est li", "bivaet li", "mojno li", "znaet li"
 ]
 
 # Inquiry questions asking for recommendations / info (-40 each)
@@ -176,7 +206,24 @@ ACTIVE_CTA_PATTERNS = [
 FIRST_PERSON_INQUIRY_PATTERNS = [
     "qayerga yozay", "kimga yozay", "qayerga boray", "kimga murojaat",
     "qayerdan olay", "qayerdan olsam", "qayerdan topsam", "qanday qilib",
-    "qayerga tolay", "qayerga to'lay", "qayerga yozsam", "qayerga murojaat qilay"
+    "qayerga tolay", "qayerga to'lay", "qayerga yozsam", "qayerga murojaat qilay",
+    "xochu zakazat", "xochu kupit", "ishu", "ishem",
+    "nujno doexat", "nujno uexat", "nujen master",
+    "nujno otremontirovat", "nujna mashina", "nujno taksi",
+    "kto mojet zabrat", "kto mojet podvezti", "kto edet"
+]
+
+# Lost & found community announcements (should not be flagged as ads even with phone numbers)
+LOST_AND_FOUND_PATTERNS = [
+    "poteryalsya", "poteryalas", "poteryali", "poteryan", "poteryana", "poteryani",
+    "uteryan", "uteryana", "uteryani", "propal", "propala", "propali",
+    "nayden", "naydena", "naydeni", "nashli", "nashel",
+    "kto videl", "kto nashel", "kto poteryal",
+    "ostavili v", "ostavil v", "zabil v", "zabili v", "voznagrajdenie",
+    "yoqolgan", "yo'qolgan", "yoqotib", "yo'qotib", "tushib qolibdi", "tushib qolgan",
+    "topib olindi", "topib oldim", "topib olingan", "topgan odamga",
+    "mukofot bor", "suyunchi bor", "suyunchisi bor",
+    "unutib qoldiribman", "esdan chiqibdi", "qolib ketibdi"
 ]
 
 # Interrogative words and reported speech particles in Uzbek/Russian

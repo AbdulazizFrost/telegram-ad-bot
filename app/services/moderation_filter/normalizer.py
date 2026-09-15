@@ -136,13 +136,11 @@ def extract_normalized_phones(raw_text: str) -> List[str]:
     # Pattern for phone sequences: optional +998, 2-digit operator code, and 7 digits with arbitrary separators
     # Example: (+998)? [ -.]? (90) [ -.]? 123 [ -.]? 45 [ -.]? 67
     phone_regex = re.compile(
-        r'(?:\+?998[\s\-.]?)?(?:\(?\b(9[0-9]|88|77|95|97|98|99|93|94|91|33|20|50|55|71)\)?[\s\-.]?)'
+        r'(?<!\d)(?:\+?998[\s\-.]*)?(?:\(?(?:9[0-9]|88|77|95|97|98|99|93|94|91|33|20|50|55|71)\)?[\s\-.]*)'
         r'(?:\d[\s\-.]*){6,7}\d\b'
     )
 
-    matches = phone_regex.findall(text)
     results = []
-
     for match in phone_regex.finditer(text):
         matched_str = match.group(0)
         digits = re.sub(r'\D', '', matched_str)
@@ -159,10 +157,13 @@ def extract_normalized_links(text: str) -> List[str]:
     """Extract web links and telegram invite links with obfuscation handling."""
     if not text:
         return []
-    # Normalize spaced t.me links
-    cleaned = re.sub(r'\bt\s*\.\s*me\s*/\s*', 't.me/', text, flags=re.IGNORECASE)
+    # Normalize spaced protocol, domains and t.me links
+    cleaned = re.sub(r'https?:\s*/\s*/\s*', 'https://', text, flags=re.IGNORECASE)
+    cleaned = re.sub(r'(\w+)\s*\.\s*(me|uz|com|ru|org|net|io|shop|info)\b', r'\1.\2', cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r'\bt\s*\.\s*me\s*/\s*', 't.me/', cleaned, flags=re.IGNORECASE)
     link_pattern = re.compile(
-        r'(?:https?://[^\s]+|t\.me/[^\s]+|instagram\.com/[^\s]+|telegram\.me/[^\s]+)',
+        r'(?:https?://[^\s]+|t\.me/[^\s]+|instagram\.com/[^\s]+|telegram\.me/[^\s]+|www\.[a-zA-Z0-9_.-]+|[a-zA-Z0-9_-]+\.(?:uz|com|ru|org|net|me)(?:/[^\s]*)?)',
         re.IGNORECASE
     )
     return link_pattern.findall(cleaned)
+
