@@ -66,6 +66,12 @@ async def init_db():
                         "subscription_status": "VARCHAR(32) DEFAULT 'none'",
                         "was_taxi": "BOOLEAN DEFAULT 0",
                         "detector_score": "FLOAT DEFAULT 0.0",
+                        "media_type": "VARCHAR(32) DEFAULT 'text'",
+                        "extracted_ocr_text": "TEXT",
+                        "detected_locations": "VARCHAR(255)",
+                        "detected_phones": "VARCHAR(255)",
+                        "detected_links": "VARCHAR(255)",
+                        "media_metadata": "TEXT",
                     }
                     for col, defn in col_defs.items():
                         if col not in existing_cols:
