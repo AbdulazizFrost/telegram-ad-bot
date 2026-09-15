@@ -40,8 +40,12 @@ class GeminiProvider(BaseAIProvider):
                 error="MISSING_API_KEY",
             )
 
+        model_name = self.model
+        if model_name in ("gemini-2.5-flash", "gemini-2.5", "gemini-flash", ""):
+            model_name = "gemini-1.5-flash"
+
         endpoint = (
-            f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent"
+            f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent"
             f"?key={self.api_key}"
         )
 
@@ -71,7 +75,7 @@ class GeminiProvider(BaseAIProvider):
                     latency_ms = (time.perf_counter() - t_start) * 1000.0
 
                     if resp.status == 429:
-                        logger.warning(f"Gemini API returned 429 Too Many Requests (model: {self.model})")
+                        logger.warning(f"Gemini API returned 429 Too Many Requests (model: {model_name})")
                         return AIClassificationResult(
                             classification="UNCERTAIN",
                             confidence=0.0,
@@ -80,6 +84,18 @@ class GeminiProvider(BaseAIProvider):
                             response_time_ms=latency_ms,
                             error="HTTP_429_RATE_LIMIT",
                         )
+
+                    # Handle 404 model not found by falling back to gemini-1.5-flash
+                    if resp.status == 404 and model_name != "gemini-1.5-flash":
+                        logger.warning(f"Gemini model {model_name} returned 404, falling back to gemini-1.5-flash...")
+                        fallback_url = (
+                            f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+                            f"?key={self.api_key}"
+                        )
+                        async with session.post(fallback_url, json=payload) as fb_resp:
+                            if fb_resp.status == 200:
+                                fb_data = await fb_resp.json()
+                                return self._parse_gemini_response(fb_data, (time.perf_counter() - t_start) * 1000.0)
 
                     if resp.status != 200:
                         error_body = await resp.text()
@@ -97,6 +113,7 @@ class GeminiProvider(BaseAIProvider):
 
                     data = await resp.json()
                     return self._parse_gemini_response(data, latency_ms)
+
 
         except asyncio.TimeoutError:
             latency_ms = (time.perf_counter() - t_start) * 1000.0

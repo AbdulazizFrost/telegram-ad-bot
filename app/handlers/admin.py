@@ -272,6 +272,11 @@ async def show_ai_stats(event: Message | CallbackQuery):
         )
         error_count = error_q.scalar() or 0
 
+        last_error_q = await session.execute(
+            select(AIModerationLog.error).where(AIModerationLog.error.isnot(None)).order_by(AIModerationLog.id.desc()).limit(1)
+        )
+        last_error = last_error_q.scalar()
+
         deleted_q = await session.execute(
             select(func.count(AIModerationLog.id)).where(AIModerationLog.was_deleted == True)
         )
@@ -289,6 +294,9 @@ async def show_ai_stats(event: Message | CallbackQuery):
         avg_time = avg_time_q.scalar() or 0.0
 
     global_ai_status = "✅ ВКЛ (Yoniq)" if settings.AI_ENABLED else "❌ ВЫКЛ (O'chiq)"
+    error_line = f"• ⚠️ <b>AI Xatolari (Ошибки):</b> {error_count} ta"
+    if last_error:
+        error_line += f" (<code>{last_error}</code>)"
 
     text = (
         "🤖 <b>AI Moderatsiya Statistikasi (Tier 2):</b>\n\n"
@@ -301,7 +309,8 @@ async def show_ai_stats(event: Message | CallbackQuery):
         f"• 🚫 <b>Reklama (AD):</b> {ad_count} ta\n"
         f"• ✅ <b>Oddiy xabar (NOT_AD):</b> {not_ad_count} ta\n"
         f"• ❓ <b>Noaniq (UNCERTAIN):</b> {uncertain_count} ta\n"
-        f"• ⚠️ <b>AI Xatolari (Ошибки):</b> {error_count} ta\n"
+        f"{error_line}\n"
+
         f"• 🗑 <b>AI o'chirgan (Удалено AI):</b> {deleted_count} ta\n"
         f"• 📈 <b>O'rtacha ishonch (Средняя уверенность):</b> {avg_conf:.1f}%\n"
         f"• ⏱ <b>O'rtacha javob vaqti:</b> {avg_time:.0f} ms\n\n"
