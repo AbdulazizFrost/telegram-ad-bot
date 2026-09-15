@@ -109,6 +109,18 @@ def classify_text(
         reasons.append("Yangi tovar/mahsulot kelishi haqida e'lon ('... keldi')")
         is_sale_related = True
 
+    # Signal: Goods/merchandise with price tag (e.g. 'Kamaz o'yinchoq 20.000', 'Qo'g'irchoq nabor 30.000') (+50)
+    is_price_discussion = bool(re.search(r'\b(?:bo\'libdi|bolibdi|oshib|tushib|qimmat|arzonlashib|edi|ekan)\b', normalized))
+    has_goods_with_price = (
+        not is_price_discussion
+        and bool(re.search(r'\b\d{1,3}\.\d{3}\b', normalized))
+        and bool(re.search(r'\b(?:o\'yinchoq[a-z]*|oyinchoq[a-z]*|nabor[a-z]*|komplekt[a-z]*|kiyim[a-z]*|kastyum[a-z]*|shim[a-z]*|koylak[a-z]*|ko\'ylak[a-z]*|poyabzal[a-z]*|krossovka[a-z]*|sumka[a-z]*|brelok[a-z]*|fonarik[a-z]*|pistolet[a-z]*)\b', normalized))
+    )
+    if has_goods_with_price and not is_sale_related:
+        score += 50.0
+        reasons.append("Tovar va narx ko'rsatilgan tijoriy e'lon")
+        is_sale_related = True
+
 
     # Signal: High taxi offers (+50)
     for kw in HIGH_TAXI_PATTERNS:
