@@ -94,6 +94,22 @@ def classify_text(
             is_sale_related = True
             break
 
+    # Signal: Explicit unit pricing or product sales (... so'mdan/sumdan/mingdan) (+50)
+    has_unit_price = bool(re.search(r'\b(?:\d{1,3}(?:[\.\s]\d{3})*|\d+)\s*(?:ming\s*(?:som|so\'m|sum|rubl|dollar|\$)?dan|(?:som|so\'m|sum|rubl|dollar|\$)dan)\b', normalized))
+    if has_unit_price and not is_sale_related:
+        score += 50.0
+        reasons.append("Mahsulot narxi va tijoriy taklif ('... so'mdan')")
+        is_sale_related = True
+
+
+    # Signal: Product arrival announcements (... keldi / ... tovarlar keldi) (+50)
+    has_goods_arrival = bool(re.search(r'\b(?:keldi|kelgan)\b', normalized)) and bool(re.search(r'\b(?:salat[a-z]*|tuxum|non|meva|gosht|go\'sht|gusht|kiyim[a-z]*|tovar[a-z]*|mahsulot[a-z]*|nabor[a-z]*|brelok[a-z]*|fonarik[a-z]*|pistolet[a-z]*|pistalet[a-z]*|paket[a-z]*)\b', normalized))
+    if has_goods_arrival and not is_sale_related:
+        score += 50.0
+        reasons.append("Yangi tovar/mahsulot kelishi haqida e'lon ('... keldi')")
+        is_sale_related = True
+
+
     # Signal: High taxi offers (+50)
     for kw in HIGH_TAXI_PATTERNS:
         if re.search(r'\b' + re.escape(kw) + r'\b', normalized) or kw in normalized:
