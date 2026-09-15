@@ -141,3 +141,22 @@ async def cb_group_ai_refresh(callback: CallbackQuery, bot: Bot):
     except Exception:
         pass
     await callback.answer("Yangilandi!")
+
+
+@router.message(
+    F.chat.type == ChatType.PRIVATE,
+    Command("settings", "ai", "ai_settings")
+)
+async def cmd_private_settings(message: Message):
+    """Guide user when /settings is called in private chat."""
+    text = (
+        "⚙️ <b>Guruh sozlamalari (Настройки группы):</b>\n\n"
+        "Ushbu buyruq <b>Telegram guruhlarida</b> AI-moderatsiyani yoqish yoki o'chirish uchun mo'ljallangan.\n\n"
+        "📌 <b>Qanday ishlatiladi?</b>\n"
+        "1. Bot admin bo'lgan <b>guruhingizga</b> kiring.\n"
+        "2. Guruh ichiga <code>/settings</code> yoki <code>/ai</code> buyrug'ini yozib yuboring.\n"
+        "3. Chiqqan tugma orqali AI-moderatsiyani yoqing (ВКЛ).\n\n"
+        "💡 <i>Umumiy AI statistikasini ko'rish uchun /admin buyrug'ini yuboring.</i>"
+    )
+    await message.reply(text, parse_mode="HTML")
+
