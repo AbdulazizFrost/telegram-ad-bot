@@ -85,7 +85,22 @@ HIGH_SALE_PATTERNS = [
     "dastabki", "dastabka", "dastavka", "dastafka",
     "qavun bor", "qovun bor", "tarvuz bor", "kadi bor", "qovoq bor", "kadi keldi",
     # Job recruitment / Hiring ads (+50)
-    "ish bor", "ish mavjud", "ish taklif", "uborka", "kunlik ish", "200 mingdan"
+    "ish bor", "ish mavjud", "ish taklif", "uborka", "kunlik ish", "200 mingdan",
+    "trebuyutsya", "trebuetsya", "ischem", "na postoyannuyu rabotu",
+    "rabota v tashkente", "rabota v toshkente", "rabota tashkent", "rabota toshkent",
+    "yejednevnaya oplata", "ejednevnaya oplata", "oplata yejednevnaya", "oplata ejednevnaya", "oplata visokaya",
+    "srochno trebuetsya", "srochno trebuyutsya", "novvoy kerak", "usta kerak", "haydovchi kerak",
+    "kuryer kerak", "posudomoyka kerak", "posudomoyshitsa", "kassir kerak",
+    # Trade services and business services (+50)
+    "santexnika", "santexnik", "elektrik", "konditsioner", "konditsioner tamirlash",
+    "kompyuter tuzatish", "kompyuter tamirlash", "noutbuklarni tuzatish",
+    "svarka xizmati", "svarka", "avtoelektrik", "buxgalteriya",
+    "gruzoperevozki", "pereezdi", "gruzchiki", "labo bor", "yuk tashish",
+    "xizmati", "xizmatlari", "xizmatlar", "uslugi", "servis",
+    # Commercial goods & property (+50)
+    "goshti bor", "go'shti bor", "gosht bor", "go'sht bor", "yangi soyilgan",
+    "arzon kiyimlar", "dokonimizga marhamat", "kupite nedorogo", "kupite",
+    "arenda kvartira", "kvartira arenda", "arenda", "kurslarimizga qabul", "qabul boshlandi"
 ]
 
 # High score signals: Driver taxi ride offers (+50 each)
@@ -98,7 +113,12 @@ HIGH_TAXI_PATTERNS = [
     "salon bosh", "salon bo'sh", "zapravkada turibmiz", "zapravkadamiz",
     "moshina bor", "mashina bor", "taksi bor", "taxsi bor", "taxi bor",
     "moshinamiz bor", "mashinamiz bor", "moshinbor", "moshin bor", "mashinabor", "mashinbor",
+    "moshinabor", "moshinabor samarqandga", "moshinabor toshkenga",
     "yolovchi olamiz", "yo'lovchi olamiz", "kishi olamiz", "kishi olaman",
+    "yolovchilar kerak", "yo'lovchilar kerak", "yolovchi kerak", "yo'lovchi kerak",
+    "taksi buyurtma", "buyurtma qilish", "zakaz taksi", "taksi zakaz",
+    "ischete nadejnoe taksi", "nadejnoe taksi", "ischete taksi",
+    "taksi v samarkand", "taksi v tashkent", "taksi v buxaru",
     "1 kishi kerak", "2 kishi kerak", "3 kishi kerak", "4 kishi kerak",
     "1 ta odam kerak", "2 ta odam kerak", "bitta odam kerak", "ikkita odam kerak",
     "1 odam kerak", "2 odam kerak", "3 odam kerak", "4 odam kerak",
@@ -154,6 +174,7 @@ HIGH_CONTACT_PATTERNS = [
     "voprosi v ls", "voprosi v lichku", "vse voprosi v ls",
     "pisat v ls", "pisat v lichku",
     "zvonite pryamo seychas", "zvonite po telefonu", "zvonit po nomeru", "zvonite dlya zakaza",
+    "zvonite nam", "zvonite", "qo'ng'iroq qiling", "qongiroq qiling", "tel qiling", "aloqaga chiqing",
     "24/7", "kun-u tun", "admin:", "zakaz:", "tel:", "telefon:", "nomer:"
 ]
 
@@ -163,12 +184,12 @@ MEDIUM_COMMERCIAL_KEYWORDS = [
     "kafe", "restoran", "magazin", "dokon", "do'kon",
     "taksi", "taxsi", "taxi", "taksis", "taxsis", "taksist", "taxsist", "taksichi", "taxsichi",
     "mashina", "moshina", "avto", "telefon", "remont", "usta",
-    "tovar", "mahsulot", "kartoshka", "go'sht", "gosht", "meva",
+    "tovar", "mahsulot", "kartoshka", "go'sht", "gosht", "goshti", "go'shti", "meva",
     "odam", "joy", "pochta", "yuk", "ketsa", "borsa", "ketadi", "boradi",
     "ketamiz", "boramiz", "yuramiz", "kk",
     "dastabka", "dastabki", "dastavka", "dastafka",
     "qavun", "qovun", "tarvuz", "kadi",
-    "ish bor", "uborka", "karak", "moshinbor", "urganga", "ketams", "ketamis"
+    "ish bor", "uborka", "karak", "moshinbor", "moshinabor", "urganga", "ketams", "ketamis"
 ]
 
 # Negative score signals: Inquiries, casual questions, recommendations (-30 to -45 each)
@@ -207,7 +228,9 @@ ACTIVE_OFFER_PATTERNS = [
     "yuramiz", "qatnaymiz", "salon bosh", "salon bo'sh", "zapravkada turibmiz",
     "taksistman", "taksichiman", "zakazat", "v nalichii", "kupit nedorogo",
     "prodayu", "prodam", "onlayn zarabotok", "onlayn ishlash", "onlayn ish",
-    "onlayn daromad", "kunlik daromad"
+    "onlayn daromad", "kunlik daromad",
+    "kurslarimizga qabul", "qabul boshlandi", "dokonimizga marhamat", "do'konimizga marhamat",
+    "moshinabor", "yolovchilar kerak", "yo'lovchilar kerak", "zvonite nam"
 ]
 
 # Active commercial calls-to-action directed to chat members to contact seller
@@ -244,7 +267,9 @@ LOST_AND_FOUND_PATTERNS = [
     "nayden", "naydena", "naydeni", "nashli", "nashel",
     "kto videl", "kto nashel", "kto poteryal",
     "ostavili v", "ostavil v", "zabil v", "zabili v", "voznagrajdenie",
-    "yoqolgan", "yo'qolgan", "yoqotib", "yo'qotib", "tushib qolibdi", "tushib qolgan",
+    "yoqolgan", "yo'qolgan", "yoqotib", "yo'qotib", "yoqotildi", "yo'qotildi",
+    "yoqotilgan", "yo'qotilgan", "topgan odam", "topganga",
+    "tushib qolibdi", "tushib qolgan",
     "topib olindi", "topib oldim", "topib olingan", "topgan odamga",
     "mukofot bor", "suyunchi bor", "suyunchisi bor",
     "unutib qoldiribman", "esdan chiqibdi", "qolib ketibdi"

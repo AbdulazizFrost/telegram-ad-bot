@@ -90,45 +90,67 @@ def full_normalize_text(text: str) -> str:
         return "@" + re.sub(r'\s+', '', raw_nick)
     text = re.sub(r'@\s+([a-z0-9_\s]{2,32})', fix_spaced_mention, text)
 
-    # 8. De-space single letters: 't a k s i' -> 'taksi', 't e l e g r a m' -> 'telegram'
+    # 8. De-punctuate single letters separated by hyphens, dots, or underscores within words:
+    # 't-o-s-h-k-e-n-t-g-a' -> 'toshkentga', 't.o.s.h.k.e.n.t.g.a' -> 'toshkentga'
+    prev_text = None
+    while prev_text != text:
+        prev_text = text
+        text = re.sub(r'(?<=\b[a-z])[-._]+(?=[a-z]\b)', '', text)
+
+    # 9. Separators: commas, semicolons, pipes, tildes, slashes not in url, and underscores
+    text = re.sub(r'[,;\\|~_]+', ' ', text)
+    text = re.sub(r'(?<!https:)(?<!http:)(?<!t\.me)/', ' ', text)
+
+    # 9. De-space single letters: 't a k s i' -> 'taksi', 't e l e g r a m' -> 'telegram'
     # Repeat until no more isolated single letters with spaces remain
     prev_text = None
     while prev_text != text:
         prev_text = text
         text = re.sub(r'(?<=\b[a-z])\s+(?=[a-z]\b)', '', text)
 
-    # 9. De-space sequences of single digits: '9 0 1 2 3 4 5 6 7' -> '901234567'
+    # 10. De-space sequences of single digits: '9 0 1 2 3 4 5 6 7' -> '901234567'
     # Only if sequence forms 7 or more digits to avoid collapsing legitimate numbers
     def despace_digit_run(match):
         digits = re.sub(r'\D', '', match.group(0))
         return digits if len(digits) >= 7 else match.group(0)
     text = re.sub(r'(?:\b\d\s+){6,}\d\b', despace_digit_run, text)
 
-    # 10. Punctuation separators in and between words:
+    # 11. Punctuation separators in and between words:
     # Multiple separators (e.g. 'soz..soz', 'soz...soz') -> replace with space
     text = re.sub(r'[._\-*]{2,}', ' ', text)
     # Digits attached directly to words: '2odam' -> '2 odam', '3kishi' -> '3 kishi'
     text = re.sub(r'(\d+)([a-z]+)', r'\1 \2', text)
+    text = re.sub(r'([a-z]+)(\d+)', r'\1 \2', text)
     # Punctuation between digits and letters -> replace with space (e.g. '3.odam' -> '3 odam')
     text = re.sub(r'(?<=\d)[._\-*]+(?=[a-z])', ' ', text)
     text = re.sub(r'(?<=[a-z])[._\-*]+(?=\d)', ' ', text)
-    # Single separator between words/syllables:
-    # If both sides are full words (len >= 3) -> replace with space (e.g. 'gulistonga.tez.ketamiz' -> 'gulistonga tez ketamiz')
-    # If short syllables/single letters (e.g. 't-a-k-s-i', 'tak-si') -> collapse to word
+    # Separator between words/syllables:
     prev_sep = None
     while prev_sep != text:
         prev_sep = text
         def handle_sep(m):
             w1, sep, w2 = m.group(1), m.group(2), m.group(3)
-            if (len(w1) >= 3 and len(w2) >= 3) or w2 in ('kk', 'bor', 'yoq', 'da', 'ga', 'go', 'ka'):
+            if w1 == 't' and w2 == 'me':
+                return 't.me'
+            if sep in ('.', '_', '*'):
                 return f"{w1} {w2}"
-            return f"{w1}{w2}"
+            if (len(w1) >= 3 and len(w2) >= 3) or w2 in ('kk', 'bor', 'yoq', 'da', 'ga', 'go', 'ka') or w1 in ('kk', 'bor', 'yoq'):
+                return f"{w1} {w2}"
+            if sep == '-':
+                return f"{w1}{w2}"
+            return f"{w1} {w2}"
         text = re.sub(r'\b([a-z]+)([-_.*])([a-z]+)\b', handle_sep, text)
 
-    # 11. Collapse repeated characters in words (letters only, preserving phone number digits): 'taaaaksiiii' -> 'taksi'
+    # Re-run de-space single letters in case punctuation handling separated letters (e.g. 'k.k' -> 'k k' -> 'kk')
+    prev_text = None
+    while prev_text != text:
+        prev_text = text
+        text = re.sub(r'(?<=\b[a-z])\s+(?=[a-z]\b)', '', text)
+
+    # 12. Collapse repeated characters in words (letters only, preserving phone number digits): 'taaaaksiiii' -> 'taksi'
     text = re.sub(r'([a-zA-Zа-яА-ЯёЁ])\1{2,}', r'\1', text)
 
-    # 12. Clean excess whitespace
+    # 13. Clean excess whitespace
     text = re.sub(r'\s+', ' ', text).strip()
 
     return text
@@ -136,10 +158,10 @@ def full_normalize_text(text: str) -> str:
 
 def extract_normalized_phones(raw_text: str) -> List[str]:
     """
-    Extract phone numbers even if obfuscated by spaces, hyphens, dots, or parentheses.
+    Extract phone numbers even if obfuscated by spaces, hyphens, dots, commas, slashes, or parentheses.
     E.g.:
     +998901234567, +998 90 123 45 67, 90-123-45-67, 90.123.45.67,
-    (90) 123 45 67, 9 0 1 2 3 4 5 6 7, 9️⃣0️⃣1️⃣2️⃣3️⃣4️⃣5️⃣6️⃣7️⃣.
+    (90) 123 45 67, 9 0 1 2 3 4 5 6 7, 94,752,47,06, 9️⃣0️⃣1️⃣2️⃣3️⃣4️⃣5️⃣6️⃣7️⃣.
 
     Safeguards:
     Does NOT match non-phone numeric sequences like times ('19:00'),
@@ -152,10 +174,10 @@ def extract_normalized_phones(raw_text: str) -> List[str]:
     text = replace_emoji_digits(raw_text)
 
     # Pattern for phone sequences: optional +998, 2-digit operator code, and 7 digits with arbitrary separators
-    # Example: (+998)? [ -.]? (90) [ -.]? 123 [ -.]? 45 [ -.]? 67
+    # Example: (+998)? [ -.,/_]? (90) [ -.,/_]? 123 [ -.,/_]? 45 [ -.,/_]? 67
     phone_regex = re.compile(
-        r'(?<!\d)(?:\+?998[\s\-.]*)?(?:\(?(?:9[0-9]|88|77|95|97|98|99|93|94|91|33|20|50|55|71)\)?[\s\-.]*)'
-        r'(?:\d[\s\-.]*){6,7}\d\b'
+        r'(?<!\d)(?:\+?998[\s\-.,/_]*)?(?:\(?(?:9[0-9]|88|77|95|97|98|99|93|94|91|33|20|50|55|71)\)?[\s\-.,/_]*)'
+        r'(?:\d[\s\-.,/_]*){6,7}\d\b'
     )
 
     results = []
