@@ -92,21 +92,22 @@ def full_normalize_text(text: str) -> str:
 
     # 8. De-punctuate single letters separated by hyphens, dots, or underscores within words:
     # 't-o-s-h-k-e-n-t-g-a' -> 'toshkentga', 't.o.s.h.k.e.n.t.g.a' -> 'toshkentga'
+    # Safely ignores Uzbek apostrophe words like 'qo\'l o\'roq'
     prev_text = None
     while prev_text != text:
         prev_text = text
-        text = re.sub(r'(?<=\b[a-z])[-._]+(?=[a-z]\b)', '', text)
+        text = re.sub(r'(?<=(?<![\'a-z])[a-z])[-._]+(?=[a-z](?![\'a-z]))', '', text)
 
     # 9. Separators: commas, semicolons, pipes, tildes, slashes not in url, and underscores
     text = re.sub(r'[,;\\|~_]+', ' ', text)
     text = re.sub(r'(?<!https:)(?<!http:)(?<!t\.me)/', ' ', text)
 
-    # 9. De-space single letters: 't a k s i' -> 'taksi', 't e l e g r a m' -> 'telegram'
-    # Repeat until no more isolated single letters with spaces remain
+    # 10. De-space single letters: 't a k s i' -> 'taksi', 't e l e g r a m' -> 'telegram'
+    # Repeat until no more isolated single letters with spaces remain (respecting apostrophes)
     prev_text = None
     while prev_text != text:
         prev_text = text
-        text = re.sub(r'(?<=\b[a-z])\s+(?=[a-z]\b)', '', text)
+        text = re.sub(r'(?<=(?<![\'a-z])[a-z])\s+(?=[a-z](?![\'a-z]))', '', text)
 
     # 10. De-space sequences of single digits: '9 0 1 2 3 4 5 6 7' -> '901234567'
     # Only if sequence forms 7 or more digits to avoid collapsing legitimate numbers
@@ -145,7 +146,7 @@ def full_normalize_text(text: str) -> str:
     prev_text = None
     while prev_text != text:
         prev_text = text
-        text = re.sub(r'(?<=\b[a-z])\s+(?=[a-z]\b)', '', text)
+        text = re.sub(r'(?<=(?<![\'a-z])[a-z])\s+(?=[a-z](?![\'a-z]))', '', text)
 
     # 12. Collapse repeated characters in words (letters only, preserving phone number digits): 'taaaaksiiii' -> 'taksi'
     text = re.sub(r'([a-zA-Zа-яА-ЯёЁ])\1{2,}', r'\1', text)

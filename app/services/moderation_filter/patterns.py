@@ -100,7 +100,15 @@ HIGH_SALE_PATTERNS = [
     # Commercial goods & property (+50)
     "goshti bor", "go'shti bor", "gosht bor", "go'sht bor", "yangi soyilgan",
     "arzon kiyimlar", "dokonimizga marhamat", "kupite nedorogo", "kupite",
-    "arenda kvartira", "kvartira arenda", "arenda", "kurslarimizga qabul", "qabul boshlandi"
+    "arenda kvartira", "kvartira arenda", "arenda", "kurslarimizga qabul", "qabul boshlandi",
+    # Agricultural / seasonal field labor & harvesting (+50)
+    "sholi yer bor", "sholi bor", "sholi o'rish", "sholi orish", "sholi o'romon", "sholi oromon",
+    "o'roq o'rish", "oroq orish", "o'roq o'romon", "oroq oromon", "o'romon deganlar", "oromon deganlar",
+    "o'romon", "oromon", "qo'l o'roq", "qol oroq", "o'roqchilar kerak", "oroqchilar kerak", "o'roqchi kerak",
+    "paxta terish", "terimchilar kerak", "paxtakor kerak",
+    "mardikor kerak", "chopiq bor", "yagana bor",
+    "deganlar bo'lsa tel", "deganlar bolsa tel", "deganlar bo'lsa lichkaga", "deganlar bolsa lichkaga",
+    "bo'lsa tel", "bolsa tel", "deganlar bo'lsa", "deganlar bolsa"
 ]
 
 # High score signals: Driver taxi ride offers (+50 each)
@@ -189,7 +197,8 @@ MEDIUM_COMMERCIAL_KEYWORDS = [
     "ketamiz", "boramiz", "yuramiz", "kk",
     "dastabka", "dastabki", "dastavka", "dastafka",
     "qavun", "qovun", "tarvuz", "kadi",
-    "ish bor", "uborka", "karak", "moshinbor", "moshinabor", "urganga", "ketams", "ketamis"
+    "ish bor", "uborka", "karak", "moshinbor", "moshinabor", "urganga", "ketams", "ketamis",
+    "sholi", "yer bor", "o'roq", "oroq", "o'romon", "oromon", "paxta", "mardikor", "chopiq", "terimchi", "tel"
 ]
 
 # Negative score signals: Inquiries, casual questions, recommendations (-30 to -45 each)
@@ -230,7 +239,8 @@ ACTIVE_OFFER_PATTERNS = [
     "prodayu", "prodam", "onlayn zarabotok", "onlayn ishlash", "onlayn ish",
     "onlayn daromad", "kunlik daromad",
     "kurslarimizga qabul", "qabul boshlandi", "dokonimizga marhamat", "do'konimizga marhamat",
-    "moshinabor", "yolovchilar kerak", "yo'lovchilar kerak", "zvonite nam"
+    "moshinabor", "yolovchilar kerak", "yo'lovchilar kerak", "zvonite nam",
+    "sholi yer bor", "sholi bor", "o'roq o'rish", "o'romon", "oromon", "qo'l o'roq", "qol oroq", "o'roq o'romon"
 ]
 
 # Active commercial calls-to-action directed to chat members to contact seller
@@ -243,6 +253,8 @@ ACTIVE_CTA_PATTERNS = [
     "kerak bolsa yozsin", "kerak bo'lsa yozsin",
     "kimga kerak bolsa yozing", "kerak bolsa yozing",
     "yozib qoying", "yozib qo'ying",
+    "deganlar bo'lsa tel", "deganlar bolsa tel", "deganlar bo'lsa lichkaga", "deganlar bolsa lichkaga",
+    "bo'lsa tel", "bolsa tel", "deganlar bo'lsa", "deganlar bolsa",
     "za podrobnostyami v ls", "za podrobnostyami v lichku",
     "voprosi v ls", "voprosi v lichku", "vse voprosi v ls",
     "pisat v ls", "pisat v lichku",

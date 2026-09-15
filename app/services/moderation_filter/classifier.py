@@ -120,6 +120,12 @@ def classify_text(
             has_contact_phrase = True
             break
 
+    has_tel_prefix = bool(re.search(r'\b(?:tel|telefon|nomer)\s*[:.]?\s*(?:\+?998|\(?\d{2}\)?)', raw_text, re.IGNORECASE))
+    if has_tel_prefix and not has_contact_phrase and extracted_phones:
+        score += 40.0
+        reasons.append("Aloqa telefoni ko'rsatilgan ('tel/telefon/nomer')")
+        has_contact_phrase = True
+
     # Signal: PM solicitation ('lichkaga', 'lichgaga', 'lsga', 'direkt', 'direct', 'dm', 'v ls')
     has_pm_request = bool(re.search(r'\b(?:lich[kg]a[a-z]*|ls(?:ga)?|pm(?:ga)?|direkt(?:ga)?|direct(?:ga)?|dm(?:ga)?)\b', normalized))
     if has_pm_request:
