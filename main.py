@@ -32,7 +32,8 @@ async def run_polling():
     logging.info("Starting bot in Polling mode...")
     # Delete webhook if previously set to ensure polling receives updates
     await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot)
+    await dp.start_polling(bot, allowed_updates=["message", "edited_message", "callback_query"])
+
 
 
 async def health_check_handler(request: web.Request) -> web.Response:
@@ -75,8 +76,9 @@ def run_webhook():
         await bot.set_webhook(
             url=webhook_full_url,
             drop_pending_updates=True,
-            allowed_updates=["message", "callback_query"]
+            allowed_updates=["message", "edited_message", "callback_query"]
         )
+
 
     app.on_startup.append(on_app_startup)
 

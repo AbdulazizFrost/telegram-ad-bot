@@ -20,3 +20,17 @@ async def handle_group_message(message: Message, bot: Bot):
             await process_group_message(bot=bot, message=message, session=session)
     except Exception as e:
         logger.error(f"Unexpected error in group moderation handler: {e}", exc_info=True)
+
+
+@router.edited_message(F.chat.type.in_({ChatType.GROUP, ChatType.SUPERGROUP}))
+async def handle_group_edited_message(message: Message, bot: Bot):
+    """
+    Catch edited messages in group and run moderation pipeline.
+    Prevents evasion by posting clean text and then editing it into an ad.
+    """
+    try:
+        async with async_session_maker() as session:
+            await process_group_message(bot=bot, message=message, session=session)
+    except Exception as e:
+        logger.error(f"Unexpected error in edited message handler: {e}", exc_info=True)
+

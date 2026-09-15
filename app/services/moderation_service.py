@@ -38,6 +38,7 @@ import time
 from typing import Optional, Any, Dict, Tuple
 
 _ADMIN_CACHE: Dict[Tuple[int, int], Tuple[bool, float]] = {}
+_MAX_ADMIN_CACHE_ENTRIES = 5000
 _CACHED_BOT_USERNAME: Optional[str] = None
 
 
@@ -45,7 +46,6 @@ def clear_admin_cache():
     """Clear memory cache for group admin checks."""
     global _ADMIN_CACHE
     _ADMIN_CACHE.clear()
-
 
 
 async def is_group_admin(bot: Bot, chat_id: int, user_id: int) -> bool:
@@ -59,11 +59,24 @@ async def is_group_admin(bot: Bot, chat_id: int, user_id: int) -> bool:
     try:
         member = await bot.get_chat_member(chat_id=chat_id, user_id=user_id)
         is_adm = member.status in (ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.CREATOR)
+
+        # Evict oldest entries if cache exceeds bound to prevent unbounded memory growth
+        if len(_ADMIN_CACHE) >= _MAX_ADMIN_CACHE_ENTRIES:
+            # First remove expired entries
+            expired = [k for k, v in _ADMIN_CACHE.items() if now >= v[1]]
+            for k in expired:
+                _ADMIN_CACHE.pop(k, None)
+            # If still over limit, remove oldest 20%
+            if len(_ADMIN_CACHE) >= _MAX_ADMIN_CACHE_ENTRIES:
+                for k in list(_ADMIN_CACHE.keys())[: (_MAX_ADMIN_CACHE_ENTRIES // 5)]:
+                    _ADMIN_CACHE.pop(k, None)
+
         _ADMIN_CACHE[key] = (is_adm, now + 300.0)
         return is_adm
     except Exception as e:
         logger.warning(f"Error checking group admin status for user {user_id} in {chat_id}: {e}")
         return False
+
 
 
 async def get_cached_bot_username(bot: Bot) -> str:

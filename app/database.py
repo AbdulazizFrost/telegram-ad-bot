@@ -13,10 +13,13 @@ class Base(DeclarativeBase):
 
 # Create async SQLAlchemy engine
 # Supports both SQLite (sqlite+aiosqlite) and PostgreSQL (postgresql+asyncpg)
+engine_kwargs = {"echo": False, "future": True}
+if "sqlite" in settings.DATABASE_URL:
+    engine_kwargs["connect_args"] = {"timeout": 30.0}
+
 engine = create_async_engine(
     settings.DATABASE_URL,
-    echo=False,
-    future=True,
+    **engine_kwargs
 )
 
 async_session_maker = async_sessionmaker(
@@ -46,6 +49,15 @@ async def init_db():
 
     logger.info("Initializing database...")
     async with engine.begin() as conn:
+        # Configure SQLite for high concurrency (WAL mode + 30s busy timeout)
+        if "sqlite" in settings.DATABASE_URL:
+            def set_sqlite_pragmas(sync_conn):
+                cursor = sync_conn.connection.cursor()
+                cursor.execute("PRAGMA journal_mode=WAL;")
+                cursor.execute("PRAGMA busy_timeout=30000;")
+                cursor.execute("PRAGMA synchronous=NORMAL;")
+            await conn.run_sync(set_sqlite_pragmas)
+
         await conn.run_sync(Base.metadata.create_all)
         
         # Auto-migration for existing SQLite moderation_logs table if columns are missing
@@ -53,6 +65,7 @@ async def init_db():
             def migrate_sqlite(sync_conn):
                 cursor = sync_conn.connection.cursor()
                 cursor.execute("PRAGMA table_info(moderation_logs)")
+
                 existing_cols = {row[1] for row in cursor.fetchall()}
                 if existing_cols:
                     col_defs = {

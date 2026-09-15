@@ -84,12 +84,18 @@ def setup_teardown_ai():
     """Setup and reset MockAIProvider and caches for each test."""
     clear_group_settings_cache()
     ai_cache.clear()
+    ai_moderation_service.limiter.reset()
+    orig_ai_enabled = settings.AI_ENABLED
+    settings.AI_ENABLED = True
     mock_prov = MockAIProvider()
     ai_moderation_service.set_provider(mock_prov)
     yield mock_prov
+    settings.AI_ENABLED = orig_ai_enabled
     clear_group_settings_cache()
     ai_cache.clear()
+    ai_moderation_service.limiter.reset()
     ai_moderation_service.set_provider(None)
+
 
 
 # ==========================================

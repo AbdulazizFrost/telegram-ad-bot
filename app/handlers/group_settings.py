@@ -87,6 +87,11 @@ async def cb_group_ai_toggle(callback: CallbackQuery, bot: Bot):
 
     user_id = callback.from_user.id
 
+    # Anti-tampering check: ensure callback belongs to the target chat
+    if callback.message and callback.message.chat.id != target_chat_id:
+        await callback.answer("❌ Xavfsizlik xatosi: chat identifikatori mos emas.", show_alert=True)
+        return
+
     # Security check: verify user is genuinely an admin in the target chat
     is_admin = (user_id == settings.ADMIN_ID) or await is_group_admin(bot, target_chat_id, user_id)
     if not is_admin:
@@ -123,11 +128,17 @@ async def cb_group_ai_refresh(callback: CallbackQuery, bot: Bot):
         await callback.answer()
         return
 
+    # Anti-tampering check: ensure callback belongs to the target chat
+    if callback.message and callback.message.chat.id != target_chat_id:
+        await callback.answer("❌ Xavfsizlik xatosi.", show_alert=True)
+        return
+
     user_id = callback.from_user.id
     is_admin = (user_id == settings.ADMIN_ID) or await is_group_admin(bot, target_chat_id, user_id)
     if not is_admin:
         await callback.answer("❌ Faqat guruh adminlari uchun.", show_alert=True)
         return
+
 
     async with async_session_maker() as session:
         ai_enabled = await is_ai_moderation_enabled(session, target_chat_id)

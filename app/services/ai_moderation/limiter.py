@@ -30,6 +30,10 @@ class AIRateLimiter:
             self.max_concurrent = max_concurrent
             self._semaphore = asyncio.Semaphore(max_concurrent)
 
+    def reset(self):
+        """Reset request history."""
+        self._request_timestamps.clear()
+
     async def _wait_for_rate_slot(self) -> bool:
         """
         Check and wait if necessary to respect the sliding-window rate limit.

@@ -24,9 +24,15 @@ def clear_group_settings_cache(chat_id: Optional[int] = None):
 async def is_ai_moderation_enabled(session: AsyncSession, chat_id: int) -> bool:
     """
     Check if AI moderation is enabled for a specific Telegram group.
-    Falls back to global settings.AI_ENABLED if not explicitly configured.
-    Uses in-memory TTL caching to avoid per-message DB queries.
+    - If global settings.AI_ENABLED is False -> always False (master killswitch).
+    - If global settings.AI_ENABLED is True -> per-group setting defaults to False (OFF)
+      until an admin of the group explicitly enables it.
+    - Uses in-memory TTL caching to avoid per-message DB queries.
     """
+    # 1. Global Master Switch: if disabled in config, never run AI for any group
+    if not settings.AI_ENABLED:
+        return False
+
     now = time.monotonic()
     cached = _GROUP_AI_CACHE.get(chat_id)
     if cached and now < cached[1]:
@@ -39,20 +45,15 @@ async def is_ai_moderation_enabled(session: AsyncSession, chat_id: int) -> bool:
             val = setting_obj.value.strip().lower()
             enabled = val in ("1", "true", "yes", "on")
         else:
-            # Check global DB setting fallback
-            global_obj = await session.get(Setting, "ai_moderation_enabled")
-            if global_obj is not None:
-                enabled = global_obj.value.strip().lower() in ("1", "true", "yes", "on")
-            else:
-                # Config fallback (default False)
-                enabled = bool(settings.AI_ENABLED)
+            # Per-group default is strictly OFF (False)
+            enabled = False
 
         _GROUP_AI_CACHE[chat_id] = (enabled, now + CACHE_TTL)
         return enabled
     except Exception as e:
         logger.error(f"Error querying AI moderation status for chat {chat_id}: {e}")
-        # Safe fallback: if DB read fails, do NOT break the bot, use config or False
-        return bool(settings.AI_ENABLED)
+        return False
+
 
 
 async def set_ai_moderation_enabled(session: AsyncSession, chat_id: int, enabled: bool) -> None:

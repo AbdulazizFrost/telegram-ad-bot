@@ -20,6 +20,7 @@ class AIModerationService:
 
     def __init__(self, provider: Optional[BaseAIProvider] = None):
         self._custom_provider = provider
+        self.limiter = ai_rate_limiter
 
     def get_provider(self) -> BaseAIProvider:
         if self._custom_provider is not None:
