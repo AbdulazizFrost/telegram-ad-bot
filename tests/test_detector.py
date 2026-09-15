@@ -166,3 +166,30 @@ def test_ordinary_numbers_and_times_not_flagged():
     for msg in normal_messages:
         is_ad, reason = is_ad_text(msg)
         assert not is_ad, f"Ordinary number falsely flagged as ad: '{msg}' (reason: {reason})"
+
+
+def test_job_recruitment_ads_detected():
+    """Detect business advertisements for hiring, recruitment, job vacancies."""
+    job_ads = [
+        "Gurlan o'shga ishchi kerak",
+        "Gurlan osh ga ishchi kerak",
+        "Restaran ba ishchi garak ayliqni galishamiz",
+        "Kafemizga oshpaz va ofitsiant kerak",
+        "Do'konga sotuvchi ishga qabul qilamiz, oylik maosh yaxshi",
+        "Toshkentda yangi vakansiya! Ishga taklif qilamiz",
+    ]
+    for ad in job_ads:
+        is_ad, reason = is_ad_text(ad)
+        assert is_ad, f"Job ad missed: '{ad}' (reason: {reason})"
+
+
+def test_casual_pm_mention_not_flagged():
+    """Ensure casual 'Lichkaga yozing' without ad context is NOT treated as an ad."""
+    casual_pm = [
+        "Lichkaga yozing",
+        "Menga lichkaga yozing",
+        "Bo'pti, lichkaga yoz",
+    ]
+    for msg in casual_pm:
+        is_ad, reason = is_ad_text(msg)
+        assert not is_ad, f"Casual PM falsely flagged as ad: '{msg}' (reason: {reason})"

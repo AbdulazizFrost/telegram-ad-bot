@@ -11,7 +11,12 @@ HIGH_SALE_PATTERNS = [
     "xizmat korsatamiz", "xizmat ko'rsatamiz", "xizmatlarimiz", "xizmat korsatish",
     "usta xizmati", "remont qilamiz", "remont xizmati", "tamirlaymiz", "ta'mirlaymiz",
     "manikyur", "pedikyur", "narashivaniye",
-    "kvartira arenda", "ijaraga beriladi", "ijaraga beramiz", "arenda beriladi"
+    "kvartira arenda", "ijaraga beriladi", "ijaraga beramiz", "arenda beriladi",
+    # Job recruitment and hiring (+50)
+    "ishchi kerak", "ishchilar kerak", "ishchi garak", "ishchilar garak",
+    "ishga olamiz", "ishga taklif", "ishga qabul", "ishga marhamat",
+    "vakansiya", "vakansiyalar", "ayliqni galishamiz", "oylikni kelishamiz",
+    "oylik maosh", "oshpaz kerak", "ofitsiant kerak", "sotuvchi kerak"
 ]
 
 # High score signals: Driver taxi ride offers (+50 each)
@@ -29,9 +34,7 @@ HIGH_TAXI_PATTERNS = [
 # High score signals: Commercial calls-to-action & direct contact solicitation (+40 each)
 HIGH_CONTACT_PATTERNS = [
     "murojaat uchun", "murojat uchun", "murojaat qiling", "murojaat:",
-    "lichkaga yozing", "lichkaga o'ting", "lichkaga chiqing", "lichkaga yozsin",
-    "lichgaga yozing", "lichgaga yozsin", "lichgaga chiqing",
-    "lsga yozing", "lsga yozsin", "aloqa uchun", "bog'lanish uchun",
+    "aloqa uchun", "bog'lanish uchun",
     "zakaz uchun", "buyurtma uchun", "batafsil ma'lumot uchun",
     "24/7", "kun-u tun", "admin:", "zakaz:", "tel:", "telefon:", "nomer:"
 ]

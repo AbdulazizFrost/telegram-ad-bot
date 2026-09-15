@@ -108,8 +108,11 @@ def classify_text(
             score += 55.0
             reasons.append("Taksi qatnovi va shaxsiy xabarga (lichkaga) chaqiruv")
             is_taxi_related = True
+        elif is_sale_related or has_contact_phrase or extracted_phones or extracted_links:
+            score += 40.0
+            reasons.append("Tijoriy taklif va shaxsiy xabarga (lichkaga) chaqiruv")
         else:
-            score += 35.0
+            score += 15.0
             reasons.append("Shaxsiy xabarga (lichkaga) yozish taklifi")
 
     # Signal: Phone numbers (+25 alone, +45 if commercial/transit context)
@@ -142,7 +145,11 @@ def classify_text(
     # Negative Signals: Inquiries, questions, recommendation requests
     has_question_mark = "?" in raw_text
     question_words = [q for q in QUESTION_PATTERNS if re.search(r'\b' + re.escape(q) + r'\b', normalized)]
-    is_inquiry = has_question_mark or len(question_words) > 0
+    # An imperative call to PM without '?' (e.g. 'kim ketsa lichkaga yozsin') is an offer, not an inquiry
+    if has_pm_request and not has_question_mark:
+        is_inquiry = False
+    else:
+        is_inquiry = has_question_mark or len(question_words) > 0
 
     if is_inquiry:
         # Question penalty
