@@ -138,17 +138,47 @@ class AlbumManager:
             if msg.caption_entities:
                 all_entities.extend(msg.caption_entities)
 
-            # Analyze media per message
+        aggregated_caption = "\n".join(dict.fromkeys(captions))  # Deduplicated
+
+        # MEMORY OPTIMIZATION: If the caption alone is already an advertisement,
+        # short-circuit immediately without downloading heavy media files. Prevents 512MB OOM crashes on Render.
+        if aggregated_caption.strip():
+            caption_res = classify_text(aggregated_caption, entities=all_entities)
+            if caption_res.is_ad:
+                logger.info(f"Album {entry.media_group_id} classified as AD via caption ({caption_res.score}); skipping media download.")
+                return AlbumAnalysisResult(
+                    is_ad=True,
+                    score=caption_res.score,
+                    reason=f"[Albom / {len(entry.messages)} ta fayl] {caption_res.reason}",
+                    violation_type=caption_res.violation_type,
+                    media_group_id=entry.media_group_id,
+                    message_ids=message_ids,
+                    aggregated_caption=aggregated_caption,
+                    aggregated_ocr="",
+                    combined_text=aggregated_caption,
+                    detected_locations=caption_res.detected_locations,
+                    extracted_phones=caption_res.extracted_phones,
+                    extracted_links=caption_res.extracted_links,
+                    media_type="album",
+                    items_count=len(entry.messages)
+                )
+
+        # Process at most 2 media items if no ad was detected in caption
+        media_checked = 0
+        for msg in entry.messages:
+            if media_checked >= 2:
+                break
             if msg.photo:
                 res = await analyze_photo_message(bot, msg.photo, caption="")
                 if res.ocr_text:
                     ocr_texts.append(res.ocr_text)
+                media_checked += 1
             elif msg.video:
                 res = await analyze_video_message(bot, msg.video, caption="")
                 if res.ocr_text:
                     ocr_texts.append(res.ocr_text)
+                media_checked += 1
 
-        aggregated_caption = "\n".join(dict.fromkeys(captions))  # Deduplicated
         aggregated_ocr = "\n".join(dict.fromkeys(ocr_texts))
 
         combined_parts = []

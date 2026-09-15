@@ -49,8 +49,8 @@ async def analyze_photo_message(
     # Stage 1: Cheap check on caption alone
     if caption:
         caption_result = classify_text(caption, entities=entities)
-        # If caption alone is a definite ad (score >= 60), we can short-circuit
-        if caption_result.is_ad and caption_result.score >= 60.0:
+        # If caption alone is a definite ad, short-circuit immediately without downloading media
+        if caption_result.is_ad:
             return MediaAnalysisResult(
                 is_ad=True,
                 score=caption_result.score,
