@@ -1,6 +1,8 @@
 from aiogram import Router, F, Bot
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.filters import CommandStart, Command
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
 from aiogram.enums import ChatType
 from sqlalchemy import select
 
@@ -13,10 +15,17 @@ from app.keyboards.user import (
     get_user_main_keyboard,
     get_user_inline_menu,
     get_back_to_user_menu,
+    get_contact_menu,
 )
 from app.keyboards.payments import get_tariff_choice_keyboard
 from app.utils.time import format_tashkent, is_past_24_hours, next_available_free_ad_time
 from app.config import settings
+
+logger = logging.getLogger(__name__)
+
+
+class UserSupportState(StatesGroup):
+    waiting_for_message = State()
 
 router = Router(name="user")
 
@@ -206,16 +215,69 @@ async def show_rules(event: Message | CallbackQuery):
 
 @router.message(F.chat.type == ChatType.PRIVATE, F.text == "📞 Bog'lanish")
 @router.callback_query(F.data == "user:contact")
-async def show_contact(event: Message | CallbackQuery, bot: Bot):
-    """Show contact details."""
-    admin_id = settings.ADMIN_ID
+async def show_contact(event: Message | CallbackQuery, bot: Bot, state: FSMContext):
+    """Show contact details and enable direct messaging to administrator."""
+    await state.set_state(UserSupportState.waiting_for_message)
+    admin_username = "abdulaziz5335"
     text = (
         "📞 <b>Administrator bilan bog'lanish:</b>\n\n"
-        "Savol, taklif yoki to'lov masalalari bo'yicha guruh ma'muriyatiga murojaat qilishingiz mumkin."
+        "Savol, taklif yoki to'lov masalalari bo'yicha to'g'ridan-to'g'ri administratorga yozishingiz mumkin:\n"
+        f"👉 @{admin_username}\n\n"
+        "💬 <b>Yoki savolingizni shu yerda yozib qoldiring</b> — bot uni adminga yetkazadi!"
     )
-    kb = get_back_to_user_menu()
+    kb = get_contact_menu(admin_username)
     if isinstance(event, CallbackQuery):
         await event.message.edit_text(text, parse_mode="HTML", reply_markup=kb)
         await event.answer()
     else:
         await event.answer(text, parse_mode="HTML", reply_markup=kb)
+
+
+@router.message(F.chat.type == ChatType.PRIVATE, UserSupportState.waiting_for_message)
+async def process_support_message(message: Message, bot: Bot, state: FSMContext):
+    """Forward user support inquiry directly to administrator."""
+    # Check if user clicked persistent menu button
+    menu_buttons = ["💳 Reklama sotib olish", "📊 Mening holatim", "ℹ️ Guruh qoidalari", "📞 Bog'lanish", "⚙️ Admin panel"]
+    if message.text in menu_buttons:
+        await state.clear()
+        if message.text == "💳 Reklama sotib olish":
+            await show_tariffs(message)
+        elif message.text == "📊 Mening holatim":
+            await show_user_status(message)
+        elif message.text == "ℹ️ Guruh qoidalari":
+            await show_rules(message)
+        elif message.text == "📞 Bog'lanish":
+            await show_contact(message, bot, state)
+        return
+
+    await state.clear()
+    user = message.from_user
+    user_str = f"@{user.username}" if user.username else "Username yo'q"
+    name_str = user.full_name or user.first_name or "Noma'lum"
+    user_id = user.id
+
+    admin_id = settings.ADMIN_ID
+    if admin_id:
+        admin_text = (
+            f"📩 <b>Botdan yangi murojaat!</b>\n\n"
+            f"👤 <b>Foydalanuvchi:</b> {user_str} ({name_str})\n"
+            f"🆔 <b>ID:</b> <code>{user_id}</code>\n\n"
+            f"💬 <b>Xabar:</b>\n"
+            f"<i>\"{message.text or '[Fayl/Rasm]'}\"</i>"
+        )
+        reply_kb = InlineKeyboardMarkup(
+            inline_keyboard=[[
+                InlineKeyboardButton(text="✍️ Foydalanuvchiga yozish", url=f"tg://user?id={user_id}")
+            ]]
+        )
+        try:
+            await bot.send_message(chat_id=admin_id, text=admin_text, parse_mode="HTML", reply_markup=reply_kb)
+        except Exception as e:
+            logger.error(f"Failed to forward support message to admin {admin_id}: {e}")
+
+    await message.answer(
+        "✅ <b>Xabaringiz administratorga yetkazildi!</b>\n\n"
+        "Tez orada siz bilan bog'lanishadi.",
+        parse_mode="HTML",
+        reply_markup=get_user_main_keyboard(is_admin=(user_id == settings.ADMIN_ID))
+    )

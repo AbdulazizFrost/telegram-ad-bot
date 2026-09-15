@@ -30,3 +30,12 @@ def get_back_to_user_menu() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🔙 Bosh menyu", callback_data="user:menu")]
     ])
+
+
+def get_contact_menu(admin_username: str = "abdulaziz5335") -> InlineKeyboardMarkup:
+    """Inline keyboard for contact section with direct chat link."""
+    username = admin_username.lstrip("@")
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="💬 Administratorga yozish", url=f"https://t.me/{username}")],
+        [InlineKeyboardButton(text="🔙 Bosh menyu", callback_data="user:menu")]
+    ])
