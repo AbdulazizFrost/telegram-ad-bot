@@ -315,7 +315,7 @@ def test_live_group_screenshot_scenarios():
 
 
 def test_regional_live_ads_from_screenshot():
-    """Verify live ad messages from user's actual group screenshot (Guliston, Gurlan, Melons)."""
+    """Verify all 16 live ad messages from user's actual group video and screenshots."""
     live_ads = [
         ("ГУЛИСТОНГО КЕТАМИЗ 777957709", True),
         ("Гурландан гулистанга кетамиз 3 одам к к 945242540", True),
@@ -325,10 +325,27 @@ def test_regional_live_ads_from_screenshot():
         ("Гулистанго кетамиз 1 одам кк +998970150521 Мансур кул", True),
         ("""Qavun bor mazali zor qavun\nKadi bol kadi keldi  mazasi ajoyib  tel 99.319.14.16 dastabki bor""", True),
         ("Гулистонга кетамиз 94 001 07 69", True),
+        ("ГУРЛАНГА.. ТАКСИ.. БОР.. ЧОРИЕВ.. ТИРКАШ.. 976085665", True),
+        ("Gurlandan gulistonga 1 odam karak 975129500", True),
+        ("Гулстонга кетамиз 3 одам кк 501036054", True),
+        ("Гурланга.. Кетамиз.. Такси.. Бор.. 976085665.. ЧОРИЕВ.. ТИРКАШ", True),
+        ("Гурландан гулистонга кетамс 2одом карак 945930344", True),
+        ("ГУЛИСТОНГА.ТЕЗ.КЕТАМИЗ..973630570...935630516.....3.Одам.кк", True),
+        ("Urganchdan gulistongo moshinbor 2 da +998937576307", True),
+        ("Гурланга 2 одам кк 880916262", True),
+        ("Гурланга 2 одам карак 997154983", True),
+        ("""Гурланга кетамис 2одом карак\n\nТанлавда адашманглар\n\n945930344""", True),
+        ("Urganchdan Gulistanga ketamiz Soat 1 larda 975156400", True),
+        ("Ассалому алейкум. Тошкентда аёл , кизларга уборка , мойкага 200 мингдан иш бор..", True),
+        ("Урганга 2 одам керак хозир кетамиз", True),
+        ("Гулистонга Кетамиз 2одам Керак 991250171", True),
+        ("Гурландан гулистанга кетамиз 930782083", True),
+        ("Гурландан гулистанга кетамиз 2 одам карак 776236252", True),
     ]
     for text, expected in live_ads:
         is_ad, reason = is_ad_text(text)
         assert is_ad == expected, f"Live ad detection failed: '{text}' (expected={expected}, got={is_ad}, reason={reason})"
+
 
 
 

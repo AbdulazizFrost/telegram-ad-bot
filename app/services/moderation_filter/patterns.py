@@ -83,7 +83,9 @@ HIGH_SALE_PATTERNS = [
     # Regional delivery dialects & agricultural food sales
     "dastabki bor", "dastabka bor", "dastavka bor", "dastafka bor",
     "dastabki", "dastabka", "dastavka", "dastafka",
-    "qavun bor", "qovun bor", "tarvuz bor", "kadi bor", "qovoq bor", "kadi keldi"
+    "qavun bor", "qovun bor", "tarvuz bor", "kadi bor", "qovoq bor", "kadi keldi",
+    # Job recruitment / Hiring ads (+50)
+    "ish bor", "ish mavjud", "ish taklif", "uborka", "kunlik ish", "200 mingdan"
 ]
 
 # High score signals: Driver taxi ride offers (+50 each)
@@ -95,20 +97,26 @@ HIGH_TAXI_PATTERNS = [
     "yuramiz", "yuraman", "qatnaymiz", "qatnayman",
     "salon bosh", "salon bo'sh", "zapravkada turibmiz", "zapravkadamiz",
     "moshina bor", "mashina bor", "taksi bor", "taxsi bor", "taxi bor",
-    "moshinamiz bor", "mashinamiz bor",
+    "moshinamiz bor", "mashinamiz bor", "moshinbor", "moshin bor", "mashinabor", "mashinbor",
     "yolovchi olamiz", "yo'lovchi olamiz", "kishi olamiz", "kishi olaman",
     "1 kishi kerak", "2 kishi kerak", "3 kishi kerak", "4 kishi kerak",
     "1 ta odam kerak", "2 ta odam kerak", "bitta odam kerak", "ikkita odam kerak",
+    "1 odam kerak", "2 odam kerak", "3 odam kerak", "4 odam kerak",
+    "1 odam karak", "2 odam karak", "3 odam karak", "4 odam karak",
+    "1 kishi karak", "2 kishi karak", "3 kishi karak", "4 kishi karak",
+    "2odom karak", "2одом карак", "3одам карак", "2 одам карак", "3 одам карак",
     "odam kerak ketamiz", "odam kerak ketdik", "kishi kerak ketamiz", "kishi kerak ketdik", "odam garak",
     "1 odam kk", "2 odam kk", "3 odam kk", "4 odam kk",
     "1 odam k k", "2 odam k k", "3 odam k k", "4 odam k k",
     "1 kishi kk", "2 kishi kk", "3 kishi kk", "4 kishi kk",
     "odam kk", "kishi kk", "odam k k", "kishi k k",
+    "xozir ketamiz", "hozir ketamiz", "tez ketamiz",
     "taksistman", "taksichiman",
     # Regional routes & ketamiz offers
-    "gulistonga ketamiz", "gulistongo ketamiz", "gulistanga ketamiz",
+    "gulistonga ketamiz", "gulistongo ketamiz", "gulistanga ketamiz", "gulstonga ketamiz",
     "gurlanga ketamiz", "gurlango ketamiz", "gurlandan gulistanga", "gurlandan gulistonga",
     "toshkentga ketamiz", "toshkengo ketamiz", "samarqandga ketamiz", "buxoroga ketamiz",
+    "urganga ketamiz", "urganga", "gurlanga ketamis", "gulistonga ketams", "gulistonga ketamis",
     # Taxi routes and cheap taxi offers (+50)
     "taxsi toshkenga", "taksi toshkenga", "taxsi toshkentga", "taksi toshkentga",
     "taxsi samarqandga", "taksi samarqandga", "taxsi gulistonga", "taksi gulistonga",
@@ -159,7 +167,8 @@ MEDIUM_COMMERCIAL_KEYWORDS = [
     "odam", "joy", "pochta", "yuk", "ketsa", "borsa", "ketadi", "boradi",
     "ketamiz", "boramiz", "yuramiz", "kk",
     "dastabka", "dastabki", "dastavka", "dastafka",
-    "qavun", "qovun", "tarvuz", "kadi"
+    "qavun", "qovun", "tarvuz", "kadi",
+    "ish bor", "uborka", "karak", "moshinbor", "urganga", "ketams", "ketamis"
 ]
 
 # Negative score signals: Inquiries, casual questions, recommendations (-30 to -45 each)

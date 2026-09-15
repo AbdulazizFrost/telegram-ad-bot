@@ -104,8 +104,26 @@ def full_normalize_text(text: str) -> str:
         return digits if len(digits) >= 7 else match.group(0)
     text = re.sub(r'(?:\b\d\s+){6,}\d\b', despace_digit_run, text)
 
-    # 10. Remove punctuation separators in words: 'tak-si' -> 'taksi', 'tak.si' -> 'taksi'
-    text = re.sub(r'(?<=[a-z])[-_.*]+(?=[a-z])', '', text)
+    # 10. Punctuation separators in and between words:
+    # Multiple separators (e.g. 'soz..soz', 'soz...soz') -> replace with space
+    text = re.sub(r'[._\-*]{2,}', ' ', text)
+    # Digits attached directly to words: '2odam' -> '2 odam', '3kishi' -> '3 kishi'
+    text = re.sub(r'(\d+)([a-z]+)', r'\1 \2', text)
+    # Punctuation between digits and letters -> replace with space (e.g. '3.odam' -> '3 odam')
+    text = re.sub(r'(?<=\d)[._\-*]+(?=[a-z])', ' ', text)
+    text = re.sub(r'(?<=[a-z])[._\-*]+(?=\d)', ' ', text)
+    # Single separator between words/syllables:
+    # If both sides are full words (len >= 3) -> replace with space (e.g. 'gulistonga.tez.ketamiz' -> 'gulistonga tez ketamiz')
+    # If short syllables/single letters (e.g. 't-a-k-s-i', 'tak-si') -> collapse to word
+    prev_sep = None
+    while prev_sep != text:
+        prev_sep = text
+        def handle_sep(m):
+            w1, sep, w2 = m.group(1), m.group(2), m.group(3)
+            if (len(w1) >= 3 and len(w2) >= 3) or w2 in ('kk', 'bor', 'yoq', 'da', 'ga', 'go', 'ka'):
+                return f"{w1} {w2}"
+            return f"{w1}{w2}"
+        text = re.sub(r'\b([a-z]+)([-_.*])([a-z]+)\b', handle_sep, text)
 
     # 11. Collapse repeated characters in words (letters only, preserving phone number digits): 'taaaaksiiii' -> 'taksi'
     text = re.sub(r'([a-zA-Zа-яА-ЯёЁ])\1{2,}', r'\1', text)
