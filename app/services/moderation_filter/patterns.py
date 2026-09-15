@@ -25,10 +25,36 @@ HIGH_SALE_PATTERNS = [
     "maxsus taklif", "qaynoq taklif", "biznes sayt",
     "somdan boshlanadi", "so'mdan boshlanadi", "narxlar boshlanadi",
     # Service calls and orders (+50)
-    "buyurtma berish uchun", "buyurtma berish", "bizga murojaat qiling",
-    "kimga kerak bolsa yozsin", "kimga kerak bo'lsa yozsin",
-    "kerak bolsa yozsin", "kerak bo'lsa yozsin",
-    "kerak bolsa yozing", "kerak bo'lsa yozing"
+    # Retail, goods & clothing
+    "yangi kiyimlar", "hamyonbop", "narxlari hamyonbop", "yetkazib berish mavjud", "yetkazib berish bor",
+    "dostavka mavjud", "dostavka bor",
+    # Computer & electronics repair
+    "tamirlash xizmati", "ta'mirlash xizmati", "tuzatish xizmati",
+    # Courses & training
+    "kurslariga qabul", "kurslarga qabul", "kurslar boshlandi", "kurslariga taklif",
+    "darslar boshlandi", "oquv markazi", "o'quv markazi",
+    # Remote work / online income
+    "onlayn ishlash", "onlayn ish", "onlayn daromad", "kunlik daromad",
+    # Channel & social promotions
+    "kanalimizga obuna", "kanalga obuna", "obuna boling", "obuna bo'ling",
+    "a'zo boling", "a'zo bo'ling", "kanalimizda barcha", "telegram kanalimizda",
+    # Commercial PM solicitation formats
+    "qiziqqanlar lichkaga", "qiziqqanlar yozsin", "qiziqqanlar dm",
+    "narxi lichkada", "narx lichkada", "batafsil malumot lichkada",
+    "batafsil ma'lumot lichkada", "malumot lichkada", "ma'lumot lichkada",
+    "batafsil lichkada", "narxi lichkaga",
+    "buyurtma uchun yozing", "buyurtma uchun", "buyurtma berish uchun", "buyurtma berish", "bizga murojaat qiling",
+    "kimga kerak bolsa yozsin", "kimga kerak bo'lsa yozsin", "kerak bolsa yozsin", "kerak bo'lsa yozsin",
+    "kerak bolsa yozing", "kerak bo'lsa yozing",
+    "kimga kerak bolsa yozib qoying", "kimga kerak bo'lsa, yozib qo'ying",
+    "kimga kerak bolsa, yozib qoying", "kimga kerak bolsa yozib qoying",
+    "yozib qoying", "yozib qo'ying",
+    "kimga kerak bolsa lichkaga", "kimga kerak bo'lsa lichkaga",
+    # Russian commercial phrases (normalized / transliterated)
+    "zakazat", "zakaz v telegram", "nedoroguyu odejdu", "nedoroguyu",
+    "pishite v lichku", "v nalichii", "podpisivaytes", "nash kanal",
+    "kursi", "onlayn zarabotok", "zarabotok", "kupit nedorogo", "prodayu",
+    "prodam", "prodayetsya", "tsena v ls", "podrobnosti v ls"
 ]
 
 # High score signals: Driver taxi ride offers (+50 each)
@@ -45,7 +71,8 @@ HIGH_TAXI_PATTERNS = [
     "taxsi toshkenga", "taksi toshkenga", "taxsi toshkentga", "taksi toshkentga",
     "taxsi samarqandga", "taksi samarqandga", "taxsi gulistonga", "taksi gulistonga",
     "arzon taksi", "arzon taxsi", "taxsi arzon", "taksi arzon",
-    "toshkenga arzon", "toshkentga arzon", "samarqandga arzon", "gulistonga arzon"
+    "toshkenga arzon", "toshkentga arzon", "samarqandga arzon", "gulistonga arzon",
+    "taksi po gorodu", "taxsi po gorodu", "zakaz v telegram"
 ]
 
 # High score signals: Commercial calls-to-action & direct contact solicitation (+40 each)

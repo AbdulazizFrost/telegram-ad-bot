@@ -209,3 +209,26 @@ def test_digital_services_and_taxi_routes_ads_detected():
     for ad in ads:
         is_ad, reason = is_ad_text(ad)
         assert is_ad, f"Digital service / taxi ad missed: '{ad}' (reason: {reason})"
+
+
+def test_russian_and_uzbek_group_spam_ads_detected():
+    """Detect Russian and Uzbek commercial ads (clothes, repairs, courses, channels, PM prices)."""
+    spam_ads = [
+        "Кто хочет заказать недорогую одежду — пишите.",
+        "Такси по городу. Заказ в Telegram.",
+        "Yangi kiyimlar keldi Narxlari hamyonbop. Yetkazib berish mavjud.",
+        "Kompyuter va noutbuklarni ta'mirlash xizmati",
+        "Ingliz tili kurslariga qabul boshlandi Batafsil ma'lumot uchun yozing.",
+        "Kimga ish kerak? Onlayn ishlash imkoniyati mavjud.",
+        "Qiziqqanlar lichkaga yozsin.",
+        "Batafsil ma'lumot lichkada.",
+        "Narxi lichkada.",
+        "Buyurtma uchun yozing.",
+        "Kimga kerak bo'lsa, yozib qo'ying.",
+        "Kanalimizga obuna bo'ling @example",
+        "Telegram kanalimizda barcha ma'lumotlar bor.",
+        "Assalomu alaykum, kimga kerak bo'lsa lichkaga yozsin.",
+    ]
+    for ad in spam_ads:
+        is_ad, reason = is_ad_text(ad)
+        assert is_ad, f"Group spam ad missed: '{ad}' (reason: {reason})"
