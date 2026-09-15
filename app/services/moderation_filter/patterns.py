@@ -145,6 +145,11 @@ HIGH_TAXI_PATTERNS = [
     "gurlanga ketamiz", "gurlango ketamiz", "gurlandan gulistanga", "gurlandan gulistonga",
     "toshkentga ketamiz", "toshkengo ketamiz", "samarqandga ketamiz", "buxoroga ketamiz",
     "urganga ketamiz", "urganga", "gurlanga ketamis", "gulistonga ketams", "gulistonga ketamis",
+    "toshkentga ketatovginlar borma", "toshkentga ketatovgonlar borma",
+    "toshkentga ketatovginlar", "toshkentga ketatovgonlar",
+    "toshkentga ketadiganlar bormi", "toshkentga ketadiganlar",
+    "gurlanga ketatovginlar borma", "gurlanga ketatovgonlar borma",
+    "ketatovginlar borma", "ketatovgonlar borma", "ketatovginlar", "ketatovgonlar",
     # Taxi routes and cheap taxi offers (+50)
     "taxsi toshkenga", "taksi toshkenga", "taxsi toshkentga", "taksi toshkentga",
     "taxsi samarqandga", "taksi samarqandga", "taxsi gulistonga", "taksi gulistonga",
@@ -240,7 +245,8 @@ ACTIVE_OFFER_PATTERNS = [
     "onlayn daromad", "kunlik daromad",
     "kurslarimizga qabul", "qabul boshlandi", "dokonimizga marhamat", "do'konimizga marhamat",
     "moshinabor", "yolovchilar kerak", "yo'lovchilar kerak", "zvonite nam",
-    "sholi yer bor", "sholi bor", "o'roq o'rish", "o'romon", "oromon", "qo'l o'roq", "qol oroq", "o'roq o'romon"
+    "sholi yer bor", "sholi bor", "o'roq o'rish", "o'romon", "oromon", "qo'l o'roq", "qol oroq", "o'roq o'romon",
+    "ketatovginlar borma", "ketatovgonlar borma", "toshkentga ketatovginlar"
 ]
 
 # Active commercial calls-to-action directed to chat members to contact seller
