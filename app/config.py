@@ -35,6 +35,22 @@ class Settings(BaseSettings):
         default=50,
         description="Scoring threshold to classify message as advertisement"
     )
+    OCR_ENABLED: bool = Field(
+        default=True,
+        description="Enable local Tesseract OCR for photos and video keyframes"
+    )
+    MAX_VIDEO_FRAMES_SAMPLE: int = Field(
+        default=5,
+        description="Max keyframes to sample from video for local OCR"
+    )
+    MAX_MEDIA_DOWNLOAD_MB: int = Field(
+        default=25,
+        description="Max media file size in megabytes to download and inspect"
+    )
+    ALBUM_DEBOUNCE_SECONDS: float = Field(
+        default=0.4,
+        description="Debounce buffer window in seconds for Telegram media groups"
+    )
     
     # Default Payment Details (fallback if not in DB settings)
     PAYMENT_CARD: str = Field(default="8600 0000 0000 0000", description="Bank card number")

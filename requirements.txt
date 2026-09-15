@@ -8,3 +8,6 @@ pytz>=2024.1
 pytest>=8.0.0
 pytest-asyncio>=0.24.0
 asyncpg>=0.30.0
+pytesseract>=0.3.10
+Pillow>=10.4.0
+imageio[ffmpeg]>=2.36.0

@@ -21,6 +21,7 @@ from app.services.moderation_filter.patterns import (
     INTERROGATIVE_WORDS,
     LOST_AND_FOUND_PATTERNS,
 )
+from app.services.locations.detector import detect_locations
 from app.config import settings
 
 
@@ -33,6 +34,7 @@ class ClassificationResult:
     normalized_text: str = ""
     extracted_phones: List[str] = field(default_factory=list)
     extracted_links: List[str] = field(default_factory=list)
+    detected_locations: List[str] = field(default_factory=list)
 
 
 def classify_text(
@@ -61,6 +63,10 @@ def classify_text(
     # 2. Extract links & handles
     extracted_links = extract_normalized_links(raw_text)
     extracted_phones = extract_normalized_phones(raw_text)
+
+    # 3. Detect Uzbekistan locations and routes
+    loc_result = detect_locations(normalized)
+    detected_locations = loc_result.detected_locations
 
     # Telegram entity check
     if entities:
@@ -109,6 +115,12 @@ def classify_text(
             score += 50.0
             reasons.append("Taksi haydovchisi qatnov taklifi va telefon raqami")
             is_taxi_related = True
+
+    # Signal: Dynamic Uzbekistan location and route detection
+    if loc_result.is_transit_offer and not is_taxi_related:
+        score += 50.0
+        reasons.append(loc_result.transit_reason)
+        is_taxi_related = True
 
 
     # Signal: Direct contact / Call to action (+40)
@@ -251,6 +263,7 @@ def classify_text(
         normalized_text=normalized,
         extracted_phones=extracted_phones,
         extracted_links=extracted_links,
+        detected_locations=detected_locations,
     )
 
 

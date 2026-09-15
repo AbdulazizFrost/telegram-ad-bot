@@ -29,6 +29,14 @@ class ModerationLog(Base):
     was_taxi: Mapped[bool] = mapped_column(Boolean, default=False)
     detector_score: Mapped[float] = mapped_column(Float, default=0.0)
 
+    # Multimodal & Detection metadata (nullable for backwards compatibility)
+    media_type: Mapped[Optional[str]] = mapped_column(String(32), nullable=True, default="text")
+    extracted_ocr_text: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    detected_locations: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    detected_phones: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    detected_links: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    media_metadata: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
     # Backwards compatibility hybrid properties
     @hybrid_property
     def message_id(self) -> int:

@@ -155,6 +155,45 @@ async def show_stats(event: Message | CallbackQuery):
         )
         deleted_today = deleted_today_res.scalar() or 0
 
+        # Media moderation breakdown
+        photo_ads_res = await session.execute(
+            select(func.count(ModerationLog.id)).where(
+                ModerationLog.media_type.in_(["photo", "album"])
+            )
+        )
+        photo_ads_count = photo_ads_res.scalar() or 0
+
+        video_ads_res = await session.execute(
+            select(func.count(ModerationLog.id)).where(
+                ModerationLog.media_type.in_(["video", "animation"])
+            )
+        )
+        video_ads_count = video_ads_res.scalar() or 0
+
+        text_ads_res = await session.execute(
+            select(func.count(ModerationLog.id)).where(
+                (ModerationLog.media_type == "text") | (ModerationLog.media_type.is_(None))
+            )
+        )
+        text_ads_count = text_ads_res.scalar() or 0
+
+        # Top routes / locations from moderation logs
+        top_locs_res = await session.execute(
+            select(ModerationLog.detected_locations)
+            .where(ModerationLog.detected_locations.isnot(None))
+            .order_by(ModerationLog.deleted_at.desc())
+            .limit(100)
+        )
+        loc_counts = {}
+        for raw_loc in top_locs_res.scalars().all():
+            if raw_loc:
+                for l in raw_loc.split(","):
+                    l_clean = l.strip().capitalize()
+                    if l_clean:
+                        loc_counts[l_clean] = loc_counts.get(l_clean, 0) + 1
+        sorted_locs = sorted(loc_counts.items(), key=lambda x: x[1], reverse=True)[:4]
+        top_routes_str = ", ".join(f"{name} ({cnt})" for name, cnt in sorted_locs) if sorted_locs else "Hozircha yo'q"
+
         # Payments confirmed today
         paid_today_res = await session.execute(
             select(func.sum(Payment.amount)).where(
@@ -175,6 +214,11 @@ async def show_stats(event: Message | CallbackQuery):
         f"💳 <b>Faol pullik obunalar:</b> {active_subs}\n"
         f"🗑 <b>Bugun o'chirilgan reklamalar:</b> {deleted_today}\n"
         f"💰 <b>Bugun qabul qilingan to'lovlar:</b> {paid_str} so'm\n\n"
+        "🛡 <b>Media moderatsiya tafsilotlari:</b>\n"
+        f"🖼 <b>Rasm / Albom reklamalari:</b> {photo_ads_count} ta\n"
+        f"🎬 <b>Video reklamalari:</b> {video_ads_count} ta\n"
+        f"📝 <b>Matnli reklamalar:</b> {text_ads_count} ta\n"
+        f"📍 <b>Eng ko'p uchragan yo'nalishlar:</b> {top_routes_str}\n\n"
         f"<i>Yangilangan vaqt: {format_tashkent(current_time)}</i>"
     )
 
@@ -973,15 +1017,33 @@ async def cb_admin_logs_page(callback: CallbackQuery):
         name_str = f" ({log.first_name})" if log.first_name else ""
         date_str = format_tashkent(log.deleted_at)
         text_preview = (log.message_text or "").replace("<", "&lt;").replace(">", "&gt;")
-        if len(text_preview) > 120:
-            text_preview = text_preview[:120] + "..."
+        media_icons = {
+            "photo": "🖼 Rasm",
+            "video": "🎬 Video",
+            "animation": "🎞 GIF",
+            "album": "📚 Albom",
+            "text": "📝 Matn",
+        }
+        media_badge = media_icons.get(log.media_type or "text", "📝 Matn")
+
+        extra_details = []
+        if log.detected_locations:
+            extra_details.append(f"📍 <b>Yo'nalish:</b> {log.detected_locations}")
+        if log.detected_phones:
+            extra_details.append(f"📞 <b>Tel:</b> {log.detected_phones}")
+        if log.extracted_ocr_text:
+            ocr_snippet = log.extracted_ocr_text.replace("<", "&lt;").replace(">", "&gt;")[:80]
+            extra_details.append(f"🔍 <b>OCR matni:</b> <i>\"{ocr_snippet}...\"</i>")
+
+        extra_str = ("\n" + "\n".join(extra_details)) if extra_details else ""
 
         lines.append(
             f"🚫 <b>{user_str}{name_str}</b> (ID: <code>{log.user_id}</code>)\n"
-            f"📅 <b>Vaqt:</b> {date_str}\n"
+            f"📅 <b>Vaqt:</b> {date_str} | <b>Turi:</b> {media_badge}\n"
             f"📌 <b>Sabab:</b> {log.reason}\n"
-            f"🏷 <b>Turi:</b> <code>{log.violation_type}</code>\n"
-            f"💬 <b>Matn:</b> <i>\"{text_preview}\"</i>\n"
+            f"🏷 <b>Qoidabuzarlik:</b> <code>{log.violation_type}</code>\n"
+            f"💬 <b>Matn:</b> <i>\"{text_preview}\"</i>"
+            f"{extra_str}\n"
         )
 
     full_text = "\n".join(lines)

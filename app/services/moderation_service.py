@@ -3,7 +3,7 @@ import logging
 from datetime import timedelta
 from typing import Optional, Any
 from aiogram import Bot
-from aiogram.types import Message
+from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.enums import ChatMemberStatus, ChatType
 from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError
 from sqlalchemy import select, delete
@@ -13,7 +13,7 @@ from app.models.user import User
 from app.models.taxi_limit import TaxiAdLimit
 from app.models.moderation_log import ModerationLog
 from app.models.setting import Setting
-from app.services.moderation_filter.classifier import classify_message
+from app.services.media_moderation import analyze_message_multimodal, UnifiedModerationDecision
 from app.services.subscription_service import get_or_create_user, has_active_subscription
 from app.utils.time import now_utc, is_past_24_hours, next_available_free_ad_time, format_tashkent
 from app.config import settings
@@ -109,14 +109,14 @@ async def process_group_message(bot: Bot, message: Message, session: AsyncSessio
         logger.debug(f"User {user_id} is group administrator; skipping moderation.")
         return False
 
-    # Step 2: Analyze message content with scoring classifier
-    classification = classify_message(message)
-    if not classification.is_ad:
+    # Step 2: Analyze message content with multimodal scoring classifier
+    decision: UnifiedModerationDecision = await analyze_message_multimodal(bot, message)
+    if not decision.is_ad:
         return False  # Regular conversation or questions -> allow without touch
 
     logger.info(
         f"Advertisement detected from user {user_id} (@{username}): "
-        f"{classification.reason} (score={classification.score}, type={classification.violation_type})"
+        f"{decision.reason} (score={decision.score}, type={decision.violation_type}, media={decision.media_type})"
     )
 
     # Step 3: Get or create user record (with lazy binding of username to telegram_id)
@@ -145,6 +145,24 @@ async def process_group_message(bot: Bot, message: Message, session: AsyncSessio
     sub_status = subscription.plan if (has_sub and subscription) else "none"
     was_taxi = (user.role == "taxi")
 
+    # Payment link keyboard: [💳 Joylashtirishni to'lash]
+    pay_keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[[
+            InlineKeyboardButton(
+                text="💳 Joylashtirishni to'lash",
+                url=f"https://t.me/{bot_username}?start=tariffs"
+            )
+        ]]
+    )
+
+    # All message IDs to delete (e.g. all photos/videos in an album)
+    target_message_ids = decision.target_message_ids or [message.message_id]
+    log_text = decision.combined_text or original_text
+    locs_str = ",".join(decision.detected_locations) if decision.detected_locations else None
+    phones_str = ",".join(decision.extracted_phones) if decision.extracted_phones else None
+    links_str = ",".join(decision.extracted_links) if decision.extracted_links else None
+    meta_str = str(decision.metadata) if decision.metadata else None
+
     # --- TAXI DRIVER RULES ---
     if user.role == "taxi":
         result = await session.execute(
@@ -165,22 +183,23 @@ async def process_group_message(bot: Bot, message: Message, session: AsyncSessio
             logger.info(f"Taxi user {user.id} (@{username}) published free 24h advertisement.")
             return False
         else:
-            # 24 hours haven't elapsed yet! Delete message.
+            # 24 hours haven't elapsed yet! Delete message(s).
             next_time = next_available_free_ad_time(taxi_limit.last_free_ad_at)
             next_time_str = format_tashkent(next_time)
 
             violation_type = "TAXI_FREE_LIMIT_EXCEEDED"
-            reason = f"Taksi 24 soatlik bepul limit tugagan. {classification.reason}"
+            reason = f"Taksi 24 soatlik bepul limit tugagan. {decision.reason}"
 
-            # Attempt physical deletion
+            # Attempt physical deletion of all album/message items
             deleted_ok = False
-            try:
-                await bot.delete_message(chat_id=chat_id, message_id=message.message_id)
-                deleted_ok = True
-            except Exception as e:
-                logger.error(f"Failed to delete taxi ad message {message.message_id} in {chat_id}: {e}")
+            for mid in target_message_ids:
+                try:
+                    await bot.delete_message(chat_id=chat_id, message_id=mid)
+                    deleted_ok = True
+                except Exception as e:
+                    logger.error(f"Failed to delete taxi ad message {mid} in {chat_id}: {e}")
 
-            # Only log if actual deletion succeeded!
+            # Only log and notify if actual deletion succeeded!
             if deleted_ok:
                 try:
                     log_entry = ModerationLog(
@@ -190,33 +209,40 @@ async def process_group_message(bot: Bot, message: Message, session: AsyncSessio
                         username=username,
                         first_name=first_name,
                         last_name=last_name,
-                        message_text=original_text,
+                        message_text=log_text,
                         deleted_at=now_utc(),
                         reason=reason,
                         violation_type=violation_type,
                         user_role=user.role,
                         subscription_status=sub_status,
                         was_taxi=True,
-                        detector_score=classification.score
+                        detector_score=decision.score,
+                        media_type=decision.media_type,
+                        extracted_ocr_text=decision.extracted_ocr_text or None,
+                        detected_locations=locs_str,
+                        detected_phones=phones_str,
+                        detected_links=links_str,
+                        media_metadata=meta_str,
                     )
                     session.add(log_entry)
                     await session.commit()
                 except Exception as log_err:
                     logger.error(f"Error saving moderation log: {log_err}", exc_info=True)
 
-                # Send temporary self-deleting notice in group
-                notice_text = (
-                    f"⚠️ <b>{mention_display}, bugungi bepul reklama limitingizdan foydalangansiz!</b>\n\n"
-                    f"⏳ Keyingi bepul reklama: <code>{next_time_str}</code>\n"
-                    f"💳 Reklamani cheklovsiz joylashtirish uchun tarif sotib olishingiz mumkin: @{bot_username}"
-                )
-                try:
-                    notice = await message.answer(notice_text, parse_mode="HTML")
-                    asyncio.create_task(
-                        auto_delete_notice(bot, chat_id, notice.message_id, settings.NOTICE_DELETE_SECONDS)
+                # Send temporary notice (only once for an album, not for each photo in it)
+                if not decision.is_album or decision.is_album_leader:
+                    notice_text = (
+                        f"⚠️ <b>{mention_display}, bugungi bepul reklama limitingizdan foydalangansiz!</b>\n\n"
+                        f"⏳ Keyingi bepul reklama: <code>{next_time_str}</code>\n"
+                        f"💳 Reklamani cheklovsiz joylashtirish uchun tarif sotib olishingiz mumkin: @{bot_username}"
                     )
-                except Exception as e:
-                    logger.error(f"Failed to send temporary notice: {e}")
+                    try:
+                        notice = await message.answer(notice_text, reply_markup=pay_keyboard, parse_mode="HTML")
+                        asyncio.create_task(
+                            auto_delete_notice(bot, chat_id, notice.message_id, settings.NOTICE_DELETE_SECONDS)
+                        )
+                    except Exception as e:
+                        logger.error(f"Failed to send temporary notice: {e}")
 
                 return True
             else:
@@ -226,20 +252,21 @@ async def process_group_message(bot: Bot, message: Message, session: AsyncSessio
     # --- REGULAR USER / BUSINESS RULES ---
     else:
         # Commercial advertising is strictly forbidden without active paid tariff
-        violation_type = classification.violation_type
+        violation_type = decision.violation_type
         if violation_type in ("NORMAL_MESSAGE", "OTHER_AD_VIOLATION"):
             violation_type = "BUSINESS_AD_WITHOUT_SUBSCRIPTION"
-        reason = f"Tarifsiz reklama. {classification.reason}"
+        reason = f"Tarifsiz reklama. {decision.reason}"
 
-        # Attempt physical deletion
+        # Attempt physical deletion of all album/message items
         deleted_ok = False
-        try:
-            await bot.delete_message(chat_id=chat_id, message_id=message.message_id)
-            deleted_ok = True
-        except Exception as e:
-            logger.error(f"Failed to delete unauthorized ad message {message.message_id} in {chat_id}: {e}")
+        for mid in target_message_ids:
+            try:
+                await bot.delete_message(chat_id=chat_id, message_id=mid)
+                deleted_ok = True
+            except Exception as e:
+                logger.error(f"Failed to delete unauthorized ad message {mid} in {chat_id}: {e}")
 
-        # Only log if actual deletion succeeded!
+        # Only log and notify if actual deletion succeeded!
         if deleted_ok:
             try:
                 log_entry = ModerationLog(
@@ -249,33 +276,40 @@ async def process_group_message(bot: Bot, message: Message, session: AsyncSessio
                     username=username,
                     first_name=first_name,
                     last_name=last_name,
-                    message_text=original_text,
+                    message_text=log_text,
                     deleted_at=now_utc(),
                     reason=reason,
                     violation_type=violation_type,
                     user_role=user.role,
                     subscription_status=sub_status,
                     was_taxi=False,
-                    detector_score=classification.score
+                    detector_score=decision.score,
+                    media_type=decision.media_type,
+                    extracted_ocr_text=decision.extracted_ocr_text or None,
+                    detected_locations=locs_str,
+                    detected_phones=phones_str,
+                    detected_links=links_str,
+                    media_metadata=meta_str,
                 )
                 session.add(log_entry)
                 await session.commit()
             except Exception as log_err:
                 logger.error(f"Error saving moderation log: {log_err}", exc_info=True)
 
-            # Send temporary self-deleting notice in group
-            notice_text = (
-                f"⚠️ <b>{mention_display}, reklama xabari o'chirildi!</b>\n\n"
-                f"Guruhda reklama joylashtirish faqat faol tarif bilan ruxsat etiladi.\n"
-                f"💳 Tarif sotib olish uchun botga kiring: @{bot_username}"
-            )
-            try:
-                notice = await message.answer(notice_text, parse_mode="HTML")
-                asyncio.create_task(
-                    auto_delete_notice(bot, chat_id, notice.message_id, settings.NOTICE_DELETE_SECONDS)
+            # Send temporary notice (only once for an album)
+            if not decision.is_album or decision.is_album_leader:
+                notice_text = (
+                    f"⚠️ <b>{mention_display}, reklama xabari o'chirildi!</b>\n\n"
+                    f"Guruhda reklama joylashtirish faqat faol tarif bilan ruxsat etiladi.\n"
+                    f"💳 Tarif sotib olish uchun quyidagi tugmani bosing:"
                 )
-            except Exception as e:
-                logger.error(f"Failed to send temporary notice: {e}")
+                try:
+                    notice = await message.answer(notice_text, reply_markup=pay_keyboard, parse_mode="HTML")
+                    asyncio.create_task(
+                        auto_delete_notice(bot, chat_id, notice.message_id, settings.NOTICE_DELETE_SECONDS)
+                    )
+                except Exception as e:
+                    logger.error(f"Failed to send temporary notice: {e}")
 
             return True
         else:
