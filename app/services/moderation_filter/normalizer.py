@@ -107,8 +107,8 @@ def full_normalize_text(text: str) -> str:
     # 10. Remove punctuation separators in words: 'tak-si' -> 'taksi', 'tak.si' -> 'taksi'
     text = re.sub(r'(?<=[a-z])[-_.*]+(?=[a-z])', '', text)
 
-    # 11. Collapse repeated characters: 'taaaaksiiii' -> 'taksi'
-    text = re.sub(r'(.)\1{2,}', r'\1', text)
+    # 11. Collapse repeated characters in words (letters only, preserving phone number digits): 'taaaaksiiii' -> 'taksi'
+    text = re.sub(r'([a-zA-Zа-яА-ЯёЁ])\1{2,}', r'\1', text)
 
     # 12. Clean excess whitespace
     text = re.sub(r'\s+', ' ', text).strip()

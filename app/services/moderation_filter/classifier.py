@@ -96,6 +96,21 @@ def classify_text(
             is_taxi_related = True
             break
 
+    # Signal: Dynamic route match (...ga ketamiz / ...go ketamiz)
+    taxi_route_ketamiz = bool(re.search(r'\b[a-z\']+(?:ga|go|ka|ko|ge)\s+(?:ketami[sz]|borami[sz]|yurami[sz]|qatnaymi[sz])\b', normalized))
+    if taxi_route_ketamiz and not is_taxi_related:
+        score += 50.0
+        reasons.append("Yo'nalish bo'yicha taksi qatnovi taklifi (...ga ketamiz)")
+        is_taxi_related = True
+
+    # Signal: Driver rides with direct phone contact ('ketamiz / yuramiz ... + phone')
+    if extracted_phones and bool(re.search(r'\b(?:ketami[sz]|borami[sz]|yurami[sz]|qatnaymi[sz]|edem|viezjaem)\b', normalized)):
+        if not is_taxi_related:
+            score += 50.0
+            reasons.append("Taksi haydovchisi qatnov taklifi va telefon raqami")
+            is_taxi_related = True
+
+
     # Signal: Direct contact / Call to action (+40)
     has_contact_phrase = False
     for kw in HIGH_CONTACT_PATTERNS:

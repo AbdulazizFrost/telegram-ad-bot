@@ -314,4 +314,22 @@ def test_live_group_screenshot_scenarios():
         assert is_ad == expected, f"Screenshot test failed: '{text}' (expected={expected}, got={is_ad}, reason={reason})"
 
 
+def test_regional_live_ads_from_screenshot():
+    """Verify live ad messages from user's actual group screenshot (Guliston, Gurlan, Melons)."""
+    live_ads = [
+        ("ГУЛИСТОНГО КЕТАМИЗ 777957709", True),
+        ("Гурландан гулистанга кетамиз 3 одам к к 945242540", True),
+        ("Gurlanda Gulistonga ketamiz 970906069", True),
+        ("Гулистонга кетамиз 943150975", True),
+        ("Гурланга кетамиз тел 97 607 83 83 🚘🚘🚘", True),
+        ("Гулистанго кетамиз 1 одам кк +998970150521 Мансур кул", True),
+        ("""Qavun bor mazali zor qavun\nKadi bol kadi keldi  mazasi ajoyib  tel 99.319.14.16 dastabki bor""", True),
+        ("Гулистонга кетамиз 94 001 07 69", True),
+    ]
+    for text, expected in live_ads:
+        is_ad, reason = is_ad_text(text)
+        assert is_ad == expected, f"Live ad detection failed: '{text}' (expected={expected}, got={is_ad}, reason={reason})"
+
+
+
 

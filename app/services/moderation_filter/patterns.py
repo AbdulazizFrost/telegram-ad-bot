@@ -79,7 +79,11 @@ HIGH_SALE_PATTERNS = [
     "moyka i polirovka", "ximchistka salona",
     "salon krasoti", "manikyur i pedikyur",
     "zvonite pryamo seychas", "zvonite v lyuboe vremya",
-    "uspeyte zapisatsya", "zapisivaytes"
+    "uspeyte zapisatsya", "zapisivaytes",
+    # Regional delivery dialects & agricultural food sales
+    "dastabki bor", "dastabka bor", "dastavka bor", "dastafka bor",
+    "dastabki", "dastabka", "dastavka", "dastafka",
+    "qavun bor", "qovun bor", "tarvuz bor", "kadi bor", "qovoq bor", "kadi keldi"
 ]
 
 # High score signals: Driver taxi ride offers (+50 each)
@@ -96,7 +100,15 @@ HIGH_TAXI_PATTERNS = [
     "1 kishi kerak", "2 kishi kerak", "3 kishi kerak", "4 kishi kerak",
     "1 ta odam kerak", "2 ta odam kerak", "bitta odam kerak", "ikkita odam kerak",
     "odam kerak ketamiz", "odam kerak ketdik", "kishi kerak ketamiz", "kishi kerak ketdik", "odam garak",
+    "1 odam kk", "2 odam kk", "3 odam kk", "4 odam kk",
+    "1 odam k k", "2 odam k k", "3 odam k k", "4 odam k k",
+    "1 kishi kk", "2 kishi kk", "3 kishi kk", "4 kishi kk",
+    "odam kk", "kishi kk", "odam k k", "kishi k k",
     "taksistman", "taksichiman",
+    # Regional routes & ketamiz offers
+    "gulistonga ketamiz", "gulistongo ketamiz", "gulistanga ketamiz",
+    "gurlanga ketamiz", "gurlango ketamiz", "gurlandan gulistanga", "gurlandan gulistonga",
+    "toshkentga ketamiz", "toshkengo ketamiz", "samarqandga ketamiz", "buxoroga ketamiz",
     # Taxi routes and cheap taxi offers (+50)
     "taxsi toshkenga", "taksi toshkenga", "taxsi toshkentga", "taksi toshkentga",
     "taxsi samarqandga", "taksi samarqandga", "taxsi gulistonga", "taksi gulistonga",
@@ -144,7 +156,10 @@ MEDIUM_COMMERCIAL_KEYWORDS = [
     "taksi", "taxsi", "taxi", "taksis", "taxsis", "taksist", "taxsist", "taksichi", "taxsichi",
     "mashina", "moshina", "avto", "telefon", "remont", "usta",
     "tovar", "mahsulot", "kartoshka", "go'sht", "gosht", "meva",
-    "odam", "joy", "pochta", "yuk", "ketsa", "borsa", "ketadi", "boradi"
+    "odam", "joy", "pochta", "yuk", "ketsa", "borsa", "ketadi", "boradi",
+    "ketamiz", "boramiz", "yuramiz", "kk",
+    "dastabka", "dastabki", "dastavka", "dastafka",
+    "qavun", "qovun", "tarvuz", "kadi"
 ]
 
 # Negative score signals: Inquiries, casual questions, recommendations (-30 to -45 each)
