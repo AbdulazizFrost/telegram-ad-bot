@@ -129,7 +129,8 @@ async def analyze_photo_message(
             "width": target_photo.width,
             "height": target_photo.height,
             "file_size": len(image_bytes),
-            "file_id": target_photo.file_id
+            "file_id": target_photo.file_id,
+            "image_bytes": image_bytes,
         }
         ocr_text = await extract_text_from_image(image_bytes)
     except Exception as e:

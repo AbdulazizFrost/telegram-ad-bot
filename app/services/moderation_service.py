@@ -181,6 +181,7 @@ async def process_group_message(bot: Bot, message: Message, session: AsyncSessio
     if not decision.is_ad:
         # Tier 2: Check if message is suspicious/borderline and group has AI enabled
         eval_text = decision.combined_text or original_text
+        has_photo_bytes = bool(decision.metadata and decision.metadata.get("image_bytes"))
         needs_ai = should_escalate_to_ai(
             raw_text=eval_text,
             local_score=decision.score,
@@ -188,7 +189,7 @@ async def process_group_message(bot: Bot, message: Message, session: AsyncSessio
             extracted_phones=decision.extracted_phones,
             extracted_links=decision.extracted_links,
             detected_locations=decision.detected_locations,
-        )
+        ) or has_photo_bytes
         if needs_ai and await is_ai_moderation_enabled(session, chat_id):
             logger.info(f"Escalating suspicious message {message.message_id} in {chat_id} to Tier 2 AI...")
             ai_result = await ai_moderation_service.evaluate_message(
@@ -198,6 +199,7 @@ async def process_group_message(bot: Bot, message: Message, session: AsyncSessio
                 media_type=decision.media_type,
                 ocr_text=decision.extracted_ocr_text,
                 session=session,
+                metadata=decision.metadata,
             )
             # Evaluate threshold
             if ai_result.classification == "AD" and ai_result.confidence >= settings.AI_AD_THRESHOLD:

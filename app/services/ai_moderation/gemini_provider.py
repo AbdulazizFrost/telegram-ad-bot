@@ -49,7 +49,24 @@ class GeminiProvider(BaseAIProvider):
             f"?key={self.api_key}"
         )
 
-        user_prompt = build_classification_prompt(content.text)
+        prompt_text = content.text or "(Quyidagi rasmda tijoriy reklama, xizmat yoki e'lon bormi? Rasm matnini va mazmunini tahlil qiling.)"
+        user_prompt = build_classification_prompt(prompt_text)
+        user_parts = []
+
+        # Multimodal Vision support: if image bytes are present, pass to Gemini Vision
+        img_bytes = (content.metadata or {}).get("image_bytes") if content.metadata else None
+        if img_bytes:
+            import base64
+            b64_str = base64.b64encode(img_bytes).decode("utf-8")
+            user_parts.append({
+                "inlineData": {
+                    "mimeType": "image/jpeg",
+                    "data": b64_str
+                }
+            })
+
+        user_parts.append({"text": user_prompt})
+
         payload = {
             "systemInstruction": {
                 "parts": [{"text": SYSTEM_PROMPT}]
@@ -57,7 +74,7 @@ class GeminiProvider(BaseAIProvider):
             "contents": [
                 {
                     "role": "user",
-                    "parts": [{"text": user_prompt}]
+                    "parts": user_parts
                 }
             ],
             "generationConfig": {

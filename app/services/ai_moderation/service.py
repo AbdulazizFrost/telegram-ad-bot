@@ -39,6 +39,7 @@ class AIModerationService:
         media_type: str = "text",
         ocr_text: Optional[str] = None,
         session: Optional[AsyncSession] = None,
+        metadata: Optional[dict] = None,
     ) -> AIClassificationResult:
         """
         Run Tier 2 AI evaluation on suspicious message.
@@ -48,8 +49,8 @@ class AIModerationService:
         provider_name = getattr(provider, "__class__", type(provider)).__name__
         model_name = getattr(provider, "model", settings.AI_MODEL)
 
-        # 1. Cache lookup
-        cached = ai_cache.get(text, provider_name, model_name)
+        # 1. Cache lookup (only for text-only messages to avoid caching huge images)
+        cached = ai_cache.get(text, provider_name, model_name) if text and not (metadata and metadata.get("image_bytes")) else None
         if cached is not None:
             logger.debug(f"AI Cache Hit for message {message_id} in {chat_id}: {cached.classification} ({cached.confidence:.2f})")
             return cached
@@ -61,6 +62,7 @@ class AIModerationService:
             message_id=message_id,
             media_type=media_type,
             ocr_text=ocr_text,
+            metadata=metadata,
         )
 
         result = await ai_rate_limiter.execute_with_protection(provider, content)
