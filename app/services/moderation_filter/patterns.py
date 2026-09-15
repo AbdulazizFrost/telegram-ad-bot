@@ -6,8 +6,8 @@ HIGH_SALE_PATTERNS = [
     "optom", "ulgurji", "arzon narxda", "eng arzon", "narxi arzon",
     "aksiya", "chegirma", "skidka", "shoshiling aksiya",
     "buyurtma bering", "buyurtma qabul", "zakaz oling", "zakaz bering",
-    "yetkazib berish bepul", "yetkazib berish tekin", "dostavka bepul",
-    "dostavka tekin", "dostavka xizmati", "yetkazib beramiz",
+    "yetkazib berish", "yetkazib beramiz", "yetkazib berish bepul", "yetkazib berish tekin", "dostavka bepul",
+    "dostavka tekin", "dostavka xizmati", "dostavka",
     "xizmat korsatamiz", "xizmat ko'rsatamiz", "xizmatlarimiz", "xizmat korsatish",
     "usta xizmati", "remont qilamiz", "remont xizmati", "tamirlaymiz", "ta'mirlaymiz",
     "manikyur", "pedikyur", "narashivaniye",
@@ -26,8 +26,12 @@ HIGH_SALE_PATTERNS = [
     "somdan boshlanadi", "so'mdan boshlanadi", "narxlar boshlanadi",
     # Service calls and orders (+50)
     # Retail, goods & clothing
-    "yangi kiyimlar", "hamyonbop", "narxlari hamyonbop", "yetkazib berish mavjud", "yetkazib berish bor",
+    "yangi kiyimlar", "kiyimlari kelgan", "kiyimlar kelgan", "tovarlar keldi", "tovarlar kelgan", "tovar keldi", "tovar kelgan",
+    "hamyonbop", "narxlari hamyonbop", "yetkazib berish mavjud", "yetkazib berish bor",
     "dostavka mavjud", "dostavka bor",
+    # Graphic design & media creation (+50)
+    "dizayn qilaman", "dizayn qilamiz", "dizayn xizmati", "bannerlar dizayn", "banner dizayn",
+    "post va bannerlar", "video oladigan", "rasmga oladigan",
     # Computer & electronics repair
     "tamirlash xizmati", "ta'mirlash xizmati", "tuzatish xizmati",
     # Courses & training

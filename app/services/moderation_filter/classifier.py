@@ -230,6 +230,9 @@ def classify_text(
     elif has_active_offer and has_question_mark and not ('bormi' in normalized or 'qidiryapman' in normalized or 'ishu' in normalized):
         # E.g. 'Kimga ish kerak? Onlayn ishlash imkoniyati mavjud.' -> Rhetorical question selling an offer
         is_inquiry = False
+    elif is_sale_related and bool(re.search(r'\b(?:kerakmi|garakmi|xohlaysizmi|istaysizmi)\b', normalized)) and not any(kw in normalized for kw in ("bilasizmi", "dedimi", "bormi", "qaysi", "qayer", "qachon")):
+        # E.g. 'Ayolar kyimi kerakmi damas kocha 2 uy arzon narxda' -> Rhetorical marketing question selling goods
+        is_inquiry = False
     else:
         is_inquiry = is_inquiry_signal
 

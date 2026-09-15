@@ -23,7 +23,7 @@ from app.services.locations.registry import (
 TRANSIT_ACTION_PATTERNS = [
     r'\b(?:ketami[sz]|borami[sz]|yurami[sz]|qatnaymi[sz]|chiqami[sz]|chiqadi)\b',
     r'\b(?:edem|yedem|viezja[a-z]*|edu|vyiezja[a-z]*)\b',
-    r'\b(?:moshina\s*bor|mashina\s*bor|moshinbor|moshinabor|joy\s*bor)\b',
+    r'\b(?:moshin[a-z]?\s*bor|mashin[a-z]?\s*bor|moshinbor|moshinabor|joy\s*bor)\b',
     r'\b(?:\d+\s*(?:ta\s*)?(?:odam|kishi|chel|mesta)\s*(?:kk|kerak|karak|garak|bor))\b',
     r'\b(?:ta[kx]si|taxi)\b',
     r'\b(?:pochta|yuk|odam)\s*(?:olami[sz]|tashish)\b',

@@ -67,15 +67,27 @@ async def get_cached_bot_username(bot: Bot) -> str:
         return "bot"
 
 
+_active_background_tasks = set()
+
+
+def schedule_auto_delete_notice(bot: Bot, chat_id: int, message_id: int, delay_seconds: int):
+    """Schedule auto-deletion of temporary notice, retaining strong reference to prevent GC loss."""
+    task = asyncio.create_task(auto_delete_notice(bot, chat_id, message_id, delay_seconds))
+    _active_background_tasks.add(task)
+    task.add_done_callback(_active_background_tasks.discard)
+    return task
+
+
 async def auto_delete_notice(bot: Bot, chat_id: int, message_id: int, delay_seconds: int):
     """Sleep for delay_seconds and quietly delete the temporary warning notice."""
-    await asyncio.sleep(delay_seconds)
     try:
+        await asyncio.sleep(delay_seconds)
         await bot.delete_message(chat_id=chat_id, message_id=message_id)
-    except (TelegramBadRequest, TelegramForbiddenError):
-        pass  # Message already deleted or bot removed from group
+        logger.info(f"Auto-deleted temporary notice {message_id} in chat {chat_id} after {delay_seconds}s.")
+    except (TelegramBadRequest, TelegramForbiddenError) as e:
+        logger.debug(f"Notice {message_id} already deleted or forbidden in {chat_id}: {e}")
     except Exception as e:
-        logger.debug(f"Could not delete notice message {message_id} in {chat_id}: {e}")
+        logger.error(f"Error auto-deleting notice {message_id} in {chat_id}: {e}", exc_info=True)
 
 
 async def cleanup_old_moderation_logs(session: AsyncSession, retention_days: Optional[int] = None) -> int:
@@ -182,6 +194,15 @@ async def process_group_message(bot: Bot, message: Message, session: AsyncSessio
         ]]
     )
 
+    # Determine notice delete delay from DB settings or config fallback
+    notice_delay = settings.NOTICE_DELETE_SECONDS
+    try:
+        t_setting = await session.get(Setting, "notice_delete_seconds")
+        if t_setting and t_setting.value and t_setting.value.isdigit():
+            notice_delay = int(t_setting.value)
+    except Exception:
+        pass
+
     # All message IDs to delete (e.g. all photos/videos in an album)
     target_message_ids = decision.target_message_ids or [message.message_id]
     log_text = decision.combined_text or original_text
@@ -265,9 +286,7 @@ async def process_group_message(bot: Bot, message: Message, session: AsyncSessio
                     )
                     try:
                         notice = await message.answer(notice_text, reply_markup=pay_keyboard, parse_mode="HTML")
-                        asyncio.create_task(
-                            auto_delete_notice(bot, chat_id, notice.message_id, settings.NOTICE_DELETE_SECONDS)
-                        )
+                        schedule_auto_delete_notice(bot, chat_id, notice.message_id, notice_delay)
                     except Exception as e:
                         logger.error(f"Failed to send temporary notice: {e}")
 
@@ -332,9 +351,7 @@ async def process_group_message(bot: Bot, message: Message, session: AsyncSessio
                 )
                 try:
                     notice = await message.answer(notice_text, reply_markup=pay_keyboard, parse_mode="HTML")
-                    asyncio.create_task(
-                        auto_delete_notice(bot, chat_id, notice.message_id, settings.NOTICE_DELETE_SECONDS)
-                    )
+                    schedule_auto_delete_notice(bot, chat_id, notice.message_id, notice_delay)
                 except Exception as e:
                     logger.error(f"Failed to send temporary notice: {e}")
 
