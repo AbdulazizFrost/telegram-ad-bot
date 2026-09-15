@@ -1,0 +1,12 @@
+services:
+  bot:
+    build: .
+    container_name: tg_ad_moderator_bot
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - TZ=Asia/Tashkent

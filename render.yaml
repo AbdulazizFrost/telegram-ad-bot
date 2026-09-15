@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: telegram-ad-bot
+    env: python
+    region: frankfurt
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: ADMIN_ID
+        sync: false
+      - key: DATABASE_URL
+        value: sqlite+aiosqlite:///./data/bot.db
+      - key: BOT_TIMEZONE
+        value: Asia/Tashkent
+      - key: NOTICE_DELETE_SECONDS
+        value: "10"
+      - key: PAYMENT_CARD
+        value: "8600 0000 0000 0000"
+      - key: PAYMENT_CARD_HOLDER
+        value: "ADMINISTRATOR"
+      - key: PORT
+        value: "10000"

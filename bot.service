@@ -1,0 +1,15 @@
+[Unit]
+Description=Telegram Anti-Ad Moderation Bot
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/tg_ad_bot
+ExecStart=/opt/tg_ad_bot/venv/bin/python main.py
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
