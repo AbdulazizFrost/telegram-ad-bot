@@ -63,6 +63,17 @@ class Settings(BaseSettings):
     
     # Logging
     LOG_LEVEL: str = Field(default="INFO", description="Logging level")
+    
+    # AI Moderation (Tier 2 Semantic Classification)
+    AI_ENABLED: bool = Field(default=False, description="Global AI moderation master toggle")
+    AI_PROVIDER: str = Field(default="gemini", description="AI Provider: gemini, groq, openai_compatible, or mock")
+    AI_API_KEY: str = Field(default="", description="API key for AI provider")
+    AI_MODEL: str = Field(default="gemini-2.5-flash", description="AI Model identifier (configurable)")
+    AI_AD_THRESHOLD: float = Field(default=0.90, description="Confidence threshold above which AI AD is deleted")
+    AI_TIMEOUT: float = Field(default=8.0, description="Timeout in seconds for AI API calls")
+    AI_CACHE_TTL: int = Field(default=3600, description="In-memory cache TTL in seconds for AI responses")
+    AI_MAX_CONCURRENT: int = Field(default=3, description="Maximum concurrent AI API calls")
+    AI_RATE_LIMIT_RPM: int = Field(default=12, description="Requests per minute rate limit for AI API calls")
 
 
 import os

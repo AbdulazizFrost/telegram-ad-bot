@@ -15,6 +15,11 @@ from app.models.moderation_log import ModerationLog
 from app.models.setting import Setting
 from app.services.media_moderation import analyze_message_multimodal, UnifiedModerationDecision
 from app.services.subscription_service import get_or_create_user, has_active_subscription
+from app.services.ai_moderation import (
+    should_escalate_to_ai,
+    is_ai_moderation_enabled,
+    ai_moderation_service,
+)
 from app.utils.time import now_utc, is_past_24_hours, next_available_free_ad_time, format_tashkent
 from app.config import settings
 
@@ -34,6 +39,13 @@ from typing import Optional, Any, Dict, Tuple
 
 _ADMIN_CACHE: Dict[Tuple[int, int], Tuple[bool, float]] = {}
 _CACHED_BOT_USERNAME: Optional[str] = None
+
+
+def clear_admin_cache():
+    """Clear memory cache for group admin checks."""
+    global _ADMIN_CACHE
+    _ADMIN_CACHE.clear()
+
 
 
 async def is_group_admin(bot: Bot, chat_id: int, user_id: int) -> bool:
@@ -149,10 +161,49 @@ async def process_group_message(bot: Bot, message: Message, session: AsyncSessio
         logger.debug(f"User {user_id} is group administrator; skipping moderation.")
         return False
 
-    # Step 2: Analyze message content with multimodal scoring classifier
+    # Step 2: Analyze message content with multimodal scoring classifier (Tier 1)
     decision: UnifiedModerationDecision = await analyze_message_multimodal(bot, message)
+    
+    ai_result = None
     if not decision.is_ad:
-        return False  # Regular conversation or questions -> allow without touch
+        # Tier 2: Check if message is suspicious/borderline and group has AI enabled
+        eval_text = decision.combined_text or original_text
+        needs_ai = should_escalate_to_ai(
+            raw_text=eval_text,
+            local_score=decision.score,
+            threshold=settings.AD_DETECTION_THRESHOLD,
+            extracted_phones=decision.extracted_phones,
+            extracted_links=decision.extracted_links,
+            detected_locations=decision.detected_locations,
+        )
+        if needs_ai and await is_ai_moderation_enabled(session, chat_id):
+            logger.info(f"Escalating suspicious message {message.message_id} in {chat_id} to Tier 2 AI...")
+            ai_result = await ai_moderation_service.evaluate_message(
+                text=eval_text,
+                chat_id=chat_id,
+                message_id=message.message_id,
+                media_type=decision.media_type,
+                ocr_text=decision.extracted_ocr_text,
+                session=session,
+            )
+            # Evaluate threshold
+            if ai_result.classification == "AD" and ai_result.confidence >= settings.AI_AD_THRESHOLD:
+                decision.is_ad = True
+                decision.reason = f"AI aniqlagan reklama ({ai_result.category}): {ai_result.reason} ({ai_result.confidence:.0%})"
+                decision.score = max(decision.score, round(ai_result.confidence * 100.0, 1))
+                decision.violation_type = "AI_DETECTED_AD"
+            else:
+                # Log non-ad AI decision and allow message
+                await ai_moderation_service.record_log(
+                    session=session,
+                    chat_id=chat_id,
+                    message_id=message.message_id,
+                    result=ai_result,
+                    was_deleted=False,
+                )
+                return False
+        else:
+            return False  # Regular conversation or questions -> allow without touch
 
     logger.info(
         f"Advertisement detected from user {user_id} (@{username}): "
@@ -274,6 +325,14 @@ async def process_group_message(bot: Bot, message: Message, session: AsyncSessio
                     )
                     session.add(log_entry)
                     await session.commit()
+                    if ai_result is not None:
+                        await ai_moderation_service.record_log(
+                            session=session,
+                            chat_id=chat_id,
+                            message_id=message.message_id,
+                            result=ai_result,
+                            was_deleted=True,
+                        )
                 except Exception as log_err:
                     logger.error(f"Error saving moderation log: {log_err}", exc_info=True)
 
@@ -339,6 +398,14 @@ async def process_group_message(bot: Bot, message: Message, session: AsyncSessio
                 )
                 session.add(log_entry)
                 await session.commit()
+                if ai_result is not None:
+                    await ai_moderation_service.record_log(
+                        session=session,
+                        chat_id=chat_id,
+                        message_id=message.message_id,
+                        result=ai_result,
+                        was_deleted=True,
+                    )
             except Exception as log_err:
                 logger.error(f"Error saving moderation log: {log_err}", exc_info=True)
 

@@ -4,6 +4,7 @@ from app.models.taxi_limit import TaxiAdLimit
 from app.models.payment import Payment
 from app.models.setting import Setting
 from app.models.moderation_log import ModerationLog
+from app.models.ai_moderation_log import AIModerationLog
 
 __all__ = [
     "User",
@@ -12,4 +13,5 @@ __all__ = [
     "Payment",
     "Setting",
     "ModerationLog",
+    "AIModerationLog",
 ]

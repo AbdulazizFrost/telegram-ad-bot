@@ -16,6 +16,7 @@ from app.models.taxi_limit import TaxiAdLimit
 from app.models.payment import Payment
 from app.models.setting import Setting
 from app.models.moderation_log import ModerationLog
+from app.models.ai_moderation_log import AIModerationLog
 from app.services.subscription_service import (
     get_or_create_user,
     get_user_by_identifier,
@@ -220,6 +221,91 @@ async def show_stats(event: Message | CallbackQuery):
         f"📝 <b>Matnli reklamalar:</b> {text_ads_count} ta\n"
         f"📍 <b>Eng ko'p uchragan yo'nalishlar:</b> {top_routes_str}\n\n"
         f"<i>Yangilangan vaqt: {format_tashkent(current_time)}</i>"
+    )
+
+    kb = get_back_to_admin_menu()
+    if isinstance(event, CallbackQuery):
+        await event.message.edit_text(text, parse_mode="HTML", reply_markup=kb)
+        await event.answer()
+    else:
+        await event.answer(text, parse_mode="HTML", reply_markup=kb)
+
+
+# ==========================================
+# 🤖 AI STATISTICS
+# ==========================================
+
+@router.message(F.chat.type == ChatType.PRIVATE, Command("ai_stats"))
+@router.callback_query(F.data == "admin_menu:ai_stats")
+async def show_ai_stats(event: Message | CallbackQuery):
+    """Show comprehensive Tier 2 AI moderation statistics."""
+    user_id = event.from_user.id
+    if not is_admin(user_id):
+        if isinstance(event, Message):
+            await event.answer("❌ Ruxsat berilmagan.")
+        else:
+            await event.answer("Ruxsat berilmagan!", show_alert=True)
+        return
+
+    async with async_session_maker() as session:
+        # Aggregated AI statistics
+        total_q = await session.execute(select(func.count(AIModerationLog.id)))
+        total_checked = total_q.scalar() or 0
+
+        ad_q = await session.execute(
+            select(func.count(AIModerationLog.id)).where(AIModerationLog.classification == "AD")
+        )
+        ad_count = ad_q.scalar() or 0
+
+        not_ad_q = await session.execute(
+            select(func.count(AIModerationLog.id)).where(AIModerationLog.classification == "NOT_AD")
+        )
+        not_ad_count = not_ad_q.scalar() or 0
+
+        uncertain_q = await session.execute(
+            select(func.count(AIModerationLog.id)).where(AIModerationLog.classification == "UNCERTAIN")
+        )
+        uncertain_count = uncertain_q.scalar() or 0
+
+        error_q = await session.execute(
+            select(func.count(AIModerationLog.id)).where(AIModerationLog.error.isnot(None))
+        )
+        error_count = error_q.scalar() or 0
+
+        deleted_q = await session.execute(
+            select(func.count(AIModerationLog.id)).where(AIModerationLog.was_deleted == True)
+        )
+        deleted_count = deleted_q.scalar() or 0
+
+        avg_conf_q = await session.execute(
+            select(func.avg(AIModerationLog.confidence)).where(AIModerationLog.error.is_(None))
+        )
+        avg_conf_val = avg_conf_q.scalar() or 0.0
+        avg_conf = avg_conf_val * 100.0
+
+        avg_time_q = await session.execute(
+            select(func.avg(AIModerationLog.response_time_ms)).where(AIModerationLog.response_time_ms > 0)
+        )
+        avg_time = avg_time_q.scalar() or 0.0
+
+    global_ai_status = "✅ ВКЛ (Yoniq)" if settings.AI_ENABLED else "❌ ВЫКЛ (O'chiq)"
+
+    text = (
+        "🤖 <b>AI Moderatsiya Statistikasi (Tier 2):</b>\n\n"
+        f"🌐 <b>Global AI holati:</b> {global_ai_status}\n"
+        f"⚙️ <b>Provayder:</b> <code>{settings.AI_PROVIDER}</code>\n"
+        f"🧠 <b>Model:</b> <code>{settings.AI_MODEL}</code>\n"
+        f"🎯 <b>O'chirish chegarasi:</b> <code>{settings.AI_AD_THRESHOLD:.0%}</code>\n\n"
+        f"📊 <b>Ko'rsatkichlar:</b>\n"
+        f"• 🔍 <b>Jami tekshirilgan (Проверено AI):</b> {total_checked} ta\n"
+        f"• 🚫 <b>Reklama (AD):</b> {ad_count} ta\n"
+        f"• ✅ <b>Oddiy xabar (NOT_AD):</b> {not_ad_count} ta\n"
+        f"• ❓ <b>Noaniq (UNCERTAIN):</b> {uncertain_count} ta\n"
+        f"• ⚠️ <b>AI Xatolari (Ошибки):</b> {error_count} ta\n"
+        f"• 🗑 <b>AI o'chirgan (Удалено AI):</b> {deleted_count} ta\n"
+        f"• 📈 <b>O'rtacha ishonch (Средняя уверенность):</b> {avg_conf:.1f}%\n"
+        f"• ⏱ <b>O'rtacha javob vaqti:</b> {avg_time:.0f} ms\n\n"
+        f"<i>Eslatma: Guruhda AI-ni boshqarish uchun guruhda /settings yoki /ai buyrug'ini yuboring.</i>"
     )
 
     kb = get_back_to_admin_menu()
