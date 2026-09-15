@@ -293,3 +293,25 @@ def test_comprehensive_user_scenarios():
         assert is_ad == expected, f"Scenario failed: '{text}' (expected={expected}, got={is_ad}, reason={reason})"
 
 
+def test_live_group_screenshot_scenarios():
+    """Verify live group screenshot messages: passenger requests vs driver ads."""
+    cases = [
+        # Inquiries (Passengers & Courses) -> MUST BE ALLOWED
+        ("Salom taqsi nechi pul bolyapdi", False),
+        ("Toshkenka taqsi bormi", False),
+        ("Menga toshkenga taqsi kerak", False),
+        ("Taxsi kerak", False),
+        ("Ingliz tili kurslariga qabul boshlandimi qayerda borish kerak?", False),
+        ("Toksi bormi", False),
+        ("Taqsi toshkentga 4 odam miz", False),
+        ("такси в ташкен 4 чел", False),
+        # Driver Taxi Offers -> MUST BE FLAGGED AS ADS
+        ("Такси в ташкен беру 4 человек", True),
+        ("🔥 ТАШКЕНТ — ЕДЕМ! Есть места для 4 человек. За подробностями в ЛС.", True),
+    ]
+    for text, expected in cases:
+        is_ad, reason = is_ad_text(text)
+        assert is_ad == expected, f"Screenshot test failed: '{text}' (expected={expected}, got={is_ad}, reason={reason})"
+
+
+

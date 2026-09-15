@@ -104,10 +104,14 @@ def classify_text(
             has_contact_phrase = True
             break
 
-    # Signal: PM solicitation ('lichkaga', 'lichgaga', 'lsga', 'direkt', 'direct', 'dm')
+    # Signal: PM solicitation ('lichkaga', 'lichgaga', 'lsga', 'direkt', 'direct', 'dm', 'v ls')
     has_pm_request = bool(re.search(r'\b(?:lich[kg]a[a-z]*|ls(?:ga)?|pm(?:ga)?|direkt(?:ga)?|direct(?:ga)?|dm(?:ga)?)\b', normalized))
     if has_pm_request:
-        taxi_or_travel = bool(re.search(r'\b(?:ta[kx]si[a-z]*|mashina|moshina|yurami[a-z]*|qatnaymi[a-z]*|odam|joy|pochta|ketsa|borsa|ketadi|boradi)\b', normalized))
+        taxi_or_travel = bool(re.search(
+            r'\b(?:ta[kx]si[a-z]*|mashina|moshina|yurami[a-z]*|qatnaymi[a-z]*|odam|joy|pochta|ketsa|borsa|ketadi|boradi'
+            r'|edem|yedem|viezja[a-z]*|mesta|mest|chelovek|chel|poputchik[a-z]*|passajir[a-z]*|beru|vozmu)\b',
+            normalized
+        ))
         if taxi_or_travel:
             score += 55.0
             reasons.append("Taksi qatnovi va shaxsiy xabarga (lichkaga) chaqiruv")
@@ -118,6 +122,13 @@ def classify_text(
         else:
             score += 15.0
             reasons.append("Shaxsiy xabarga (lichkaga) yozish taklifi")
+
+    # Signal: Driver offer verbs ('беру', 'возьму') with passenger/transport terms
+    driver_beru_offer = bool(re.search(r'\b(?:beru|vozmu|zaberu)\b(?:\s+(?:\d+|chelovek|chel|lyudey|passajir|poputchik|odam|kishi|posilk|pocht|gruz)|\s*$)', normalized))
+    if driver_beru_offer and not is_taxi_related:
+        score += 50.0
+        reasons.append("Taksi haydovchisi mijoz olish taklifi ('беру/возьму')")
+        is_taxi_related = True
 
     # Signal: Phone numbers (+25 alone, +45 if commercial/transit context)
     if extracted_phones:

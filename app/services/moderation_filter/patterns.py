@@ -92,7 +92,11 @@ HIGH_TAXI_PATTERNS = [
     "arzon taksi", "arzon taxsi", "taxsi arzon", "taksi arzon",
     "toshkenga arzon", "toshkentga arzon", "samarqandga arzon", "gulistonga arzon",
     "taksi po gorodu", "taxsi po gorodu", "zakaz v telegram",
-    "svobodnie mesta", "mesta yest", "viezjaem", "beru poputchikov"
+    "svobodnie mesta", "mesta yest", "viezjaem", "beru poputchikov",
+    "est mesta", "yest mesta", "mesta dlya", "ostalos mesta", "ostalos mesto",
+    "svobodno mesta", "svobodno mesto", "mesta est",
+    "edem v tashkent", "edem v samarkand", "edem v buxaru", "edem v ferganu",
+    "tashkent edem", "samarkand edem", "buxara edem"
 ]
 
 # High score signals: Commercial calls-to-action & direct contact solicitation (+40 each)
@@ -102,6 +106,9 @@ HIGH_CONTACT_PATTERNS = [
     "zakaz uchun", "buyurtma uchun", "batafsil ma'lumot uchun",
     "batafsil ma'lumot uchun yozing", "ma'lumot uchun yozing", "batafsil yozing",
     "dm ga yozing", "dmga yozing", "dm ga", "dmga", "directga", "direktga",
+    "za podrobnostyami v ls", "za podrobnostyami v lichku",
+    "voprosi v ls", "voprosi v lichku", "vse voprosi v ls",
+    "pisat v ls", "pisat v lichku",
     "24/7", "kun-u tun", "admin:", "zakaz:", "tel:", "telefon:", "nomer:"
 ]
 
@@ -142,7 +149,7 @@ ACTIVE_OFFER_PATTERNS = [
     "yuvamiz", "tozalaymiz", "polirovka",
     "odam olamiz", "odam olaman", "kishi olamiz", "kishi olaman",
     "joy bor", "bitta joy bor", "ikkita joy bor",
-    "taksi bor", "taxsi bor", "svobodnie mesta", "viezjaem",
+    "taksi bor", "taxsi bor", "svobodnie mesta", "est mesta", "yest mesta", "mesta dlya", "viezjaem",
     "yuramiz", "qatnaymiz", "salon bosh", "salon bo'sh", "zapravkada turibmiz",
     "taksistman", "taksichiman", "zakazat", "v nalichii", "kupit nedorogo",
     "prodayu", "prodam", "onlayn zarabotok", "onlayn ishlash", "onlayn ish",
@@ -159,6 +166,9 @@ ACTIVE_CTA_PATTERNS = [
     "kerak bolsa yozsin", "kerak bo'lsa yozsin",
     "kimga kerak bolsa yozing", "kerak bolsa yozing",
     "yozib qoying", "yozib qo'ying",
+    "za podrobnostyami v ls", "za podrobnostyami v lichku",
+    "voprosi v ls", "voprosi v lichku", "vse voprosi v ls",
+    "pisat v ls", "pisat v lichku",
     "pishite v lichku", "pishite"
 ]
 
