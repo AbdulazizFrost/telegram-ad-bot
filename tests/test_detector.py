@@ -232,3 +232,25 @@ def test_russian_and_uzbek_group_spam_ads_detected():
     for ad in spam_ads:
         is_ad, reason = is_ad_text(ad)
         assert is_ad, f"Group spam ad missed: '{ad}' (reason: {reason})"
+
+
+def test_reported_speech_and_commercial_inquiries_not_flagged():
+    """Ensure reported speech, inquiries about discounts/courses, and seeker questions are NOT flagged as ads."""
+    inquiries = [
+        # Video 1: Reported speech questioning about discounts/promotions
+        "Bugun barcha mahsulotlarga chegirmada dedimi aksiya muddati cheklangan dedi",
+        # Video 2: Resident asking where to write/apply for courses
+        "Ingliz tili kurslariga qabul boshlandi dedi Batafsil ma'lumotni uchun qayerga yozay yozing.",
+        # General questions about promotions and discounts
+        "Bugun chegirma bormi?",
+        "Kim biladi bugun aksiya bormi?",
+        "Do'konda chegirmalar rostmi?",
+        "Aksiya muddati qachongacha davom etadi?",
+        # General questions about courses and vacancies
+        "Ingliz tili kurslari qayerda o'tiladi?",
+        "Ish bormi?",
+    ]
+    for msg in inquiries:
+        is_ad, reason = is_ad_text(msg)
+        assert not is_ad, f"Inquiry falsely flagged as ad: '{msg}' (reason: {reason})"
+

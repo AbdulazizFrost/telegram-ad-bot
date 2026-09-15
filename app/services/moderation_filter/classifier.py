@@ -15,6 +15,10 @@ from app.services.moderation_filter.patterns import (
     HIGH_CONTACT_PATTERNS,
     MEDIUM_COMMERCIAL_KEYWORDS,
     QUESTION_PATTERNS,
+    ACTIVE_OFFER_PATTERNS,
+    ACTIVE_CTA_PATTERNS,
+    FIRST_PERSON_INQUIRY_PATTERNS,
+    INTERROGATIVE_WORDS,
 )
 from app.config import settings
 
@@ -144,25 +148,43 @@ def classify_text(
 
     # Negative Signals: Inquiries, questions, recommendation requests
     has_question_mark = "?" in raw_text
-    question_words = [q for q in QUESTION_PATTERNS if re.search(r'\b' + re.escape(q) + r'\b', normalized)]
+    question_words = [q for q in (QUESTION_PATTERNS + INTERROGATIVE_WORDS) if re.search(r'\b' + re.escape(q) + r'\b', normalized)]
+    has_verb_question = bool(re.search(r'\b[a-z\']{2,}(?:dimi|dymi|adimi|edimi|asizmi|asilarmi|mikan|mikin|yaptimi|ganmi|kanmi)\b', normalized))
+    has_first_person_inquiry = any(re.search(r'\b' + re.escape(fp) + r'\b', normalized) for fp in FIRST_PERSON_INQUIRY_PATTERNS)
+
+    is_inquiry_signal = has_question_mark or len(question_words) > 0 or has_verb_question or has_first_person_inquiry
+
+    # Active seller / promotional check
+    has_active_offer = any(re.search(r'\b' + re.escape(p) + r'\b', normalized) for p in ACTIVE_OFFER_PATTERNS)
+    has_active_cta = any(re.search(r'\b' + re.escape(c) + r'\b', normalized) for c in ACTIVE_CTA_PATTERNS)
+    has_direct_contact = bool(extracted_phones or extracted_links or mentions)
 
     # Distinguish rhetorical marketing hook questions from genuine user inquiries:
-    # If the message contains explicit commercial sales, taxi offers, or calls to action,
-    # the question mark is just a sales hook (e.g. "To'yga taklifnoma kerakmi? Biz yaratamiz!").
-    has_strong_ad_offer = is_sale_related or is_taxi_related or has_contact_phrase
-    if has_strong_ad_offer:
+    if has_first_person_inquiry:
+        # A person asking where/how to write or apply is a seeker, not a seller
+        is_inquiry = True
+    elif has_pm_request and not has_question_mark and not has_verb_question:
+        # An imperative call to PM without question form (e.g. 'kim ketsa lichkaga yozsin') is an offer, not an inquiry
         is_inquiry = False
-    elif has_pm_request and not has_question_mark:
-        # An imperative call to PM without '?' (e.g. 'kim ketsa lichkaga yozsin') is an offer, not an inquiry
+    elif has_active_cta and not (has_question_mark or has_verb_question):
+        # E.g. 'kimga kerak bo'lsa yozsin' without question is a sales call, not an inquiry
+        is_inquiry = False
+    elif (has_active_offer or has_active_cta) and (has_direct_contact or has_pm_request):
+        # A marketing hook offering services + telling audience to contact author
+        is_inquiry = False
+    elif has_active_offer and not (has_question_mark or has_verb_question):
+        is_inquiry = False
+    elif has_active_offer and has_question_mark and not ('bormi' in normalized or 'qidiryapman' in normalized):
+        # E.g. 'Kimga ish kerak? Onlayn ishlash imkoniyati mavjud.' -> Rhetorical question selling an offer
         is_inquiry = False
     else:
-        is_inquiry = has_question_mark or len(question_words) > 0
+        is_inquiry = is_inquiry_signal
 
     if is_inquiry:
         # Question penalty
         score -= 35.0
         # If no commercial link, no phone, and no PM solicitation -> strong reduction to protect user questions
-        if not extracted_links and not extracted_phones and not has_pm_request:
+        if not has_direct_contact and not has_pm_request:
             score -= 40.0
 
     score = max(0.0, score)

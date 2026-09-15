@@ -111,3 +111,48 @@ RECOMMENDATION_QUESTIONS = [
     "kimda ... bor", "kim ... biladi", "qaysi ... yaxshi", "qayerda arzon",
     "usta bormi", "taksist bormi", "taksi bormi", "nomeri bormi", "nomeri bor"
 ]
+
+# Active seller / provider commercial offers (used to detect marketing hooks)
+ACTIVE_OFFER_PATTERNS = [
+    "yaratib beramiz", "yaratamiz", "tayyorlab beramiz", "tayyorlaymiz",
+    "yasab beramiz", "yasaymiz", "qilib beramiz", "tamirlaymiz", "ta'mirlaymiz",
+    "sotamiz", "sotaman", "yetkazib beramiz", "ishga olamiz", "ishga qabul",
+    "ishga taklif", "imkoniyati mavjud",
+    "odam olamiz", "odam olaman", "joy bor", "bitta joy bor", "ikkita joy bor",
+    "yuramiz", "qatnaymiz", "salon bosh", "salon bo'sh", "zapravkada turibmiz",
+    "taksistman", "taksichiman", "zakazat", "v nalichii", "kupit nedorogo",
+    "prodayu", "prodam", "onlayn zarabotok", "onlayn ishlash", "onlayn ish",
+    "onlayn daromad", "kunlik daromad"
+]
+
+# Active commercial calls-to-action directed to chat members to contact seller
+ACTIVE_CTA_PATTERNS = [
+    "lichkaga yozing", "lichkaga yozsin", "lichgaga yozing", "lichgaga yozsin",
+    "dm ga yozing", "dmga yozing", "directga yozing", "direktga yozing",
+    "murojaat qiling", "bizga murojaat qiling", "buyurtma bering",
+    "buyurtma uchun yozing", "obuna bo'ling", "obuna boling",
+    "kimga kerak bolsa yozsin", "kimga kerak bo'lsa yozsin",
+    "kerak bolsa yozsin", "kerak bo'lsa yozsin",
+    "kimga kerak bolsa yozing", "kerak bolsa yozing",
+    "yozib qoying", "yozib qo'ying",
+    "pishite v lichku", "pishite"
+]
+
+# First-person inquiry phrases (a user asking where/how THEY should write or apply)
+FIRST_PERSON_INQUIRY_PATTERNS = [
+    "qayerga yozay", "kimga yozay", "qayerga boray", "kimga murojaat",
+    "qayerdan olay", "qayerdan olsam", "qayerdan topsam", "qanday qilib",
+    "qayerga tolay", "qayerga to'lay", "qayerga yozsam", "qayerga murojaat qilay"
+]
+
+# Interrogative words and reported speech particles in Uzbek/Russian
+INTERROGATIVE_WORDS = [
+    "dedimi", "eshitdingizmi", "eshitdizmi", "bilasizmi", "bilasilarmi",
+    "rostmi", "to'g'rimi", "togrimi", "haqiqatmi", "shunaqami", "bormi", "bomi",
+    "bormikin", "bormikan", "rostmikin", "rostmikan", "kerakmi", "mumkinmi",
+    "bo'ladimi", "boladimi", "emasmi", "yuradimi", "boshlandimi", "ochildimi",
+    "beriladimi", "qilinadimi", "qiladimi", "keladimi", "ketadimi",
+    "aksiyami", "chegirmami", "skidkami",
+    "deb eshitdim", "deb aytishdi", "deb yozishibdi", "deyishyapti", "deyapti"
+]
+
