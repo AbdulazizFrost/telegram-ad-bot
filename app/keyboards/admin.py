@@ -17,8 +17,7 @@ def get_admin_main_menu() -> InlineKeyboardMarkup:
             InlineKeyboardButton(text="⚙️ Sozlamalar", callback_data="admin_menu:settings")
         ],
         [
-            InlineKeyboardButton(text="🤖 AI Statistika", callback_data="admin_menu:ai_stats"),
-            InlineKeyboardButton(text="📋 Moderatsiya jurnali", callback_data="admin_logs:page:1")
+            InlineKeyboardButton(text="🤖 AI Statistika", callback_data="admin_menu:ai_stats")
         ],
         [
             InlineKeyboardButton(text="📢 Xabar tarqatish (Broadcast)", callback_data="admin_menu:broadcast")
