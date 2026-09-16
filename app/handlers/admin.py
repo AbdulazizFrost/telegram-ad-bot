@@ -31,12 +31,9 @@ from app.keyboards.admin import (
     get_admin_advertisers_menu,
     get_admin_tariffs_menu,
     get_admin_settings_menu,
-    get_admin_logs_keyboard,
-    get_admin_clear_logs_confirm_keyboard,
     get_admin_cancel_keyboard,
     get_back_to_admin_menu,
 )
-from app.services.moderation_service import cleanup_old_moderation_logs
 from app.utils.time import now_utc, format_tashkent, to_tashkent
 from app.utils.text import normalize_username
 from app.config import settings
@@ -1056,134 +1053,6 @@ async def process_broadcast(message: Message, state: Optional[FSMContext] = None
     )
 
 
-# ==========================================
-# 📋 MODERATION LOGS
-# ==========================================
-
-@router.callback_query(F.data.startswith("admin_logs:page:"))
-async def cb_admin_logs_page(callback: CallbackQuery):
-    """View paginated moderation log entries."""
-    if not is_admin(callback.from_user.id):
-        await callback.answer("Ruxsat berilmagan!", show_alert=True)
-        return
-
-    page_str = callback.data.split(":")[2]
-    page = int(page_str) if page_str.isdigit() else 1
-    page_size = 3
-
-    async with async_session_maker() as session:
-        # Enforce automatic retention cleanup
-        await cleanup_old_moderation_logs(session)
-
-        # Count total logs
-        total_res = await session.execute(select(func.count(ModerationLog.id)))
-        total_count = total_res.scalar() or 0
-
-        if total_count == 0:
-            text = (
-                "📋 <b>Moderatsiya jurnali bo'sh.</b>\n\n"
-                "Hozircha birorta ham reklama o'chirilmagan yoki barcha jurnallar tozalangan."
-            )
-            await callback.message.edit_text(
-                text,
-                parse_mode="HTML",
-                reply_markup=get_back_to_admin_menu()
-            )
-            await callback.answer()
-            return
-
-        total_pages = max(1, (total_count + page_size - 1) // page_size)
-        page = max(1, min(page, total_pages))
-        offset = (page - 1) * page_size
-
-        # Fetch items for current page
-        items_res = await session.execute(
-            select(ModerationLog)
-            .order_by(ModerationLog.deleted_at.desc())
-            .offset(offset)
-            .limit(page_size)
-        )
-        logs = items_res.scalars().all()
-
-    lines = [f"📋 <b>Moderatsiya jurnali</b> (Sahifa {page}/{total_pages} | Jami: {total_count} ta)\n"]
-
-    for log in logs:
-        user_str = f"@{log.username}" if log.username else "Username yo'q"
-        name_str = f" ({log.first_name})" if log.first_name else ""
-        date_str = format_tashkent(log.deleted_at)
-        text_preview = (log.message_text or "").replace("<", "&lt;").replace(">", "&gt;")
-        media_icons = {
-            "photo": "🖼 Rasm",
-            "video": "🎬 Video",
-            "animation": "🎞 GIF",
-            "album": "📚 Albom",
-            "text": "📝 Matn",
-        }
-        media_badge = media_icons.get(log.media_type or "text", "📝 Matn")
-
-        extra_details = []
-        if log.detected_locations:
-            extra_details.append(f"📍 <b>Yo'nalish:</b> {log.detected_locations}")
-        if log.detected_phones:
-            extra_details.append(f"📞 <b>Tel:</b> {log.detected_phones}")
-        if log.extracted_ocr_text:
-            ocr_snippet = log.extracted_ocr_text.replace("<", "&lt;").replace(">", "&gt;")[:80]
-            extra_details.append(f"🔍 <b>OCR matni:</b> <i>\"{ocr_snippet}...\"</i>")
-
-        extra_str = ("\n" + "\n".join(extra_details)) if extra_details else ""
-
-        lines.append(
-            f"🚫 <b>{user_str}{name_str}</b> (ID: <code>{log.user_id}</code>)\n"
-            f"📅 <b>Vaqt:</b> {date_str} | <b>Turi:</b> {media_badge}\n"
-            f"📌 <b>Sabab:</b> {log.reason}\n"
-            f"🏷 <b>Qoidabuzarlik:</b> <code>{log.violation_type}</code>\n"
-            f"💬 <b>Matn:</b> <i>\"{text_preview}\"</i>"
-            f"{extra_str}\n"
-        )
-
-    full_text = "\n".join(lines)
-    await callback.message.edit_text(
-        full_text,
-        parse_mode="HTML",
-        reply_markup=get_admin_logs_keyboard(page, total_pages)
-    )
-    await callback.answer()
 
 
-@router.callback_query(F.data == "admin_logs:clear_confirm")
-async def cb_admin_clear_logs_confirm(callback: CallbackQuery):
-    """Prompt confirmation before clearing moderation logs."""
-    if not is_admin(callback.from_user.id):
-        await callback.answer("Ruxsat berilmagan!", show_alert=True)
-        return
-    text = (
-        "⚠️ <b>Haqiqatan ham barcha moderatsiya jurnali yozuvlarini butunlay o'chirib tashlamoqchimisiz?</b>\n\n"
-        "Ushbu amalni ortga qaytarib bo'lmaydi."
-    )
-    await callback.message.edit_text(
-        text,
-        parse_mode="HTML",
-        reply_markup=get_admin_clear_logs_confirm_keyboard()
-    )
-    await callback.answer()
-
-
-@router.callback_query(F.data == "admin_logs:clear_execute")
-async def cb_admin_clear_logs_execute(callback: CallbackQuery):
-    """Permanently delete all moderation logs."""
-    if not is_admin(callback.from_user.id):
-        await callback.answer("Ruxsat berilmagan!", show_alert=True)
-        return
-
-    async with async_session_maker() as session:
-        from sqlalchemy import delete
-        await session.execute(delete(ModerationLog))
-        await session.commit()
-
-    await callback.message.edit_text(
-        "✅ <b>Moderatsiya jurnali muvaffaqiyatli tozalandi.</b>",
-        parse_mode="HTML",
-        reply_markup=get_back_to_admin_menu()
-    )
-    await callback.answer("Jurnal tozalandi!", show_alert=True)
 

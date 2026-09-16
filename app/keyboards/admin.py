@@ -85,37 +85,6 @@ def get_admin_settings_menu() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
-def get_admin_logs_keyboard(page: int, total_pages: int) -> InlineKeyboardMarkup:
-    """Pagination and action keyboard for moderation logs."""
-    buttons = []
-    nav_row = []
-    if page > 1:
-        nav_row.append(InlineKeyboardButton(text="◀️ Orqaga", callback_data=f"admin_logs:page:{page - 1}"))
-    nav_row.append(InlineKeyboardButton(text="🔄 Yangilash", callback_data=f"admin_logs:page:{page}"))
-    if page < total_pages:
-        nav_row.append(InlineKeyboardButton(text="▶️ Oldinga", callback_data=f"admin_logs:page:{page + 1}"))
-    buttons.append(nav_row)
-
-    buttons.append([
-        InlineKeyboardButton(text="🗑 Jurnalni tozalash", callback_data="admin_logs:clear_confirm")
-    ])
-    buttons.append([
-        InlineKeyboardButton(text="🔙 Asosiy admin menyu", callback_data="admin_menu:main")
-    ])
-    return InlineKeyboardMarkup(inline_keyboard=buttons)
-
-
-def get_admin_clear_logs_confirm_keyboard() -> InlineKeyboardMarkup:
-    """Confirmation prompt before clearing moderation logs."""
-    buttons = [
-        [
-            InlineKeyboardButton(text="✅ Ha, butunlay tozalansin", callback_data="admin_logs:clear_execute"),
-            InlineKeyboardButton(text="❌ Bekor qilish", callback_data="admin_logs:page:1")
-        ]
-    ]
-    return InlineKeyboardMarkup(inline_keyboard=buttons)
-
-
 def get_admin_cancel_keyboard() -> InlineKeyboardMarkup:
     """Cancel admin input operation button."""
     return InlineKeyboardMarkup(inline_keyboard=[

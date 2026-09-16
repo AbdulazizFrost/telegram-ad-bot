@@ -315,41 +315,42 @@ async def process_group_message(bot: Bot, message: Message, session: AsyncSessio
 
             # Only log and notify if actual deletion succeeded!
             if deleted_ok:
-                try:
-                    log_entry = ModerationLog(
-                        telegram_message_id=message.message_id,
-                        chat_id=chat_id,
-                        user_id=user_id,
-                        username=username,
-                        first_name=first_name,
-                        last_name=last_name,
-                        message_text=log_text,
-                        deleted_at=now_utc(),
-                        reason=reason,
-                        violation_type=violation_type,
-                        user_role=user.role,
-                        subscription_status=sub_status,
-                        was_taxi=True,
-                        detector_score=decision.score,
-                        media_type=decision.media_type,
-                        extracted_ocr_text=decision.extracted_ocr_text or None,
-                        detected_locations=locs_str,
-                        detected_phones=phones_str,
-                        detected_links=links_str,
-                        media_metadata=meta_str,
-                    )
-                    session.add(log_entry)
-                    await session.commit()
-                    if ai_result is not None:
-                        await ai_moderation_service.record_log(
-                            session=session,
+                if settings.SAVE_MODERATION_LOGS:
+                    try:
+                        log_entry = ModerationLog(
+                            telegram_message_id=message.message_id,
                             chat_id=chat_id,
-                            message_id=message.message_id,
-                            result=ai_result,
-                            was_deleted=True,
+                            user_id=user_id,
+                            username=username,
+                            first_name=first_name,
+                            last_name=last_name,
+                            message_text=log_text,
+                            deleted_at=now_utc(),
+                            reason=reason,
+                            violation_type=violation_type,
+                            user_role=user.role,
+                            subscription_status=sub_status,
+                            was_taxi=True,
+                            detector_score=decision.score,
+                            media_type=decision.media_type,
+                            extracted_ocr_text=decision.extracted_ocr_text or None,
+                            detected_locations=locs_str,
+                            detected_phones=phones_str,
+                            detected_links=links_str,
+                            media_metadata=meta_str,
                         )
-                except Exception as log_err:
-                    logger.error(f"Error saving moderation log: {log_err}", exc_info=True)
+                        session.add(log_entry)
+                        await session.commit()
+                    except Exception as log_err:
+                        logger.error(f"Error saving moderation log: {log_err}", exc_info=True)
+                if ai_result is not None:
+                    await ai_moderation_service.record_log(
+                        session=session,
+                        chat_id=chat_id,
+                        message_id=message.message_id,
+                        result=ai_result,
+                        was_deleted=True,
+                    )
 
                 # Send temporary notice (only once for an album, not for each photo in it)
                 if not decision.is_album or decision.is_album_leader:
@@ -388,41 +389,42 @@ async def process_group_message(bot: Bot, message: Message, session: AsyncSessio
 
         # Only log and notify if actual deletion succeeded!
         if deleted_ok:
-            try:
-                log_entry = ModerationLog(
-                    telegram_message_id=message.message_id,
-                    chat_id=chat_id,
-                    user_id=user_id,
-                    username=username,
-                    first_name=first_name,
-                    last_name=last_name,
-                    message_text=log_text,
-                    deleted_at=now_utc(),
-                    reason=reason,
-                    violation_type=violation_type,
-                    user_role=user.role,
-                    subscription_status=sub_status,
-                    was_taxi=False,
-                    detector_score=decision.score,
-                    media_type=decision.media_type,
-                    extracted_ocr_text=decision.extracted_ocr_text or None,
-                    detected_locations=locs_str,
-                    detected_phones=phones_str,
-                    detected_links=links_str,
-                    media_metadata=meta_str,
-                )
-                session.add(log_entry)
-                await session.commit()
-                if ai_result is not None:
-                    await ai_moderation_service.record_log(
-                        session=session,
+            if settings.SAVE_MODERATION_LOGS:
+                try:
+                    log_entry = ModerationLog(
+                        telegram_message_id=message.message_id,
                         chat_id=chat_id,
-                        message_id=message.message_id,
-                        result=ai_result,
-                        was_deleted=True,
+                        user_id=user_id,
+                        username=username,
+                        first_name=first_name,
+                        last_name=last_name,
+                        message_text=log_text,
+                        deleted_at=now_utc(),
+                        reason=reason,
+                        violation_type=violation_type,
+                        user_role=user.role,
+                        subscription_status=sub_status,
+                        was_taxi=False,
+                        detector_score=decision.score,
+                        media_type=decision.media_type,
+                        extracted_ocr_text=decision.extracted_ocr_text or None,
+                        detected_locations=locs_str,
+                        detected_phones=phones_str,
+                        detected_links=links_str,
+                        media_metadata=meta_str,
                     )
-            except Exception as log_err:
-                logger.error(f"Error saving moderation log: {log_err}", exc_info=True)
+                    session.add(log_entry)
+                    await session.commit()
+                except Exception as log_err:
+                    logger.error(f"Error saving moderation log: {log_err}", exc_info=True)
+            if ai_result is not None:
+                await ai_moderation_service.record_log(
+                    session=session,
+                    chat_id=chat_id,
+                    message_id=message.message_id,
+                    result=ai_result,
+                    was_deleted=True,
+                )
 
             # Send temporary notice (only once for an album)
             if not decision.is_album or decision.is_album_leader:

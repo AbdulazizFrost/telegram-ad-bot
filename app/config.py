@@ -31,6 +31,10 @@ class Settings(BaseSettings):
         default=90,
         description="Days to retain moderation logs before automatic cleanup"
     )
+    SAVE_MODERATION_LOGS: bool = Field(
+        default=False,
+        description="Whether to save deleted messages to moderation_logs table"
+    )
     AD_DETECTION_THRESHOLD: int = Field(
         default=50,
         description="Scoring threshold to classify message as advertisement"

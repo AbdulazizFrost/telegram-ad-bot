@@ -17,6 +17,7 @@ from app.services.subscription_service import (
 from app.services.moderation_service import process_group_message, cleanup_old_moderation_logs
 from aiogram.enums import ChatType, ChatMemberStatus
 from aiogram.exceptions import TelegramBadRequest
+from app.config import settings
 
 
 from contextlib import asynccontextmanager
@@ -316,11 +317,12 @@ async def test_data_persistence_across_restart(tmp_path):
 # ==========================================
 
 @pytest.mark.asyncio
-async def test_detailed_moderation_log_recorded():
+async def test_detailed_moderation_log_recorded(monkeypatch):
     """
     Verifies that upon successful deletion of an ad, a detailed ModerationLog
-    record is created with all required fields.
+    record is created with all required fields when SAVE_MODERATION_LOGS is True.
     """
+    monkeypatch.setattr(settings, "SAVE_MODERATION_LOGS", True)
     async with get_test_session() as test_session:
         bot = create_mock_bot(is_admin=False)
         ad_text = "Sotiladi! Yangi iPhone 15 Pro Max narxi arzon."
@@ -359,6 +361,35 @@ async def test_detailed_moderation_log_recorded():
         assert log.detector_score >= 50.0
         assert log.deleted_at is not None
         assert "sotiladi" in log.reason.lower()
+
+
+@pytest.mark.asyncio
+async def test_moderation_log_not_recorded_when_disabled():
+    """
+    Verifies that when SAVE_MODERATION_LOGS is False (default),
+    no record is inserted into moderation_logs table upon deletion.
+    """
+    async with get_test_session() as test_session:
+        bot = create_mock_bot(is_admin=False)
+        ad_text = "Sotiladi! Yangi iPhone 15 Pro Max narxi arzon."
+        msg = create_mock_message(
+            chat_id=-100999888777,
+            user_id=654322,
+            username="seller_uz2",
+            first_name="Seller2",
+            last_name="Pro2",
+            text=ad_text,
+        )
+
+        deleted = await process_group_message(bot, msg, test_session)
+        assert deleted is True
+        bot.delete_message.assert_called_once_with(chat_id=-100999888777, message_id=123)
+
+        result = await test_session.execute(
+            select(ModerationLog).where(ModerationLog.user_id == 654322)
+        )
+        logs = result.scalars().all()
+        assert len(logs) == 0
 
 
 @pytest.mark.asyncio
