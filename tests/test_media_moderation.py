@@ -34,6 +34,18 @@ from app.services.media_moderation.album_manager import (
 )
 from app.services.media_moderation.pipeline import analyze_message_multimodal
 from app.services.locations.detector import detect_locations
+from app.services.moderation_filter.classifier import classify_text
+from app.services.moderation_service import process_group_message
+from app.services.ai_moderation.prompt import build_multimodal_classification_prompt
+from app.services.ai_moderation.base import AIClassificationResult
+from app.services.ai_moderation.service import ai_moderation_service
+from app.services.ai_moderation.mock_provider import MockAIProvider
+from app.database import Base
+from app.config import settings
+from aiogram.types import PhotoSize
+from aiogram.enums import ChatType, ChatMemberStatus
+from contextlib import asynccontextmanager
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
 
 # ==========================================
@@ -253,3 +265,107 @@ def test_passenger_party_not_driver_ad():
     """Verify passenger inquiries ('Taqsi toshkentga 4 odam miz') are not flagged as driver ads."""
     res = detect_locations("Taqsi toshkentga 4 odam miz")
     assert res.is_transit_offer is False
+
+
+# ==========================================
+# 6. MULTIMODAL PHOTO AI MODERATION TESTS
+# ==========================================
+
+@asynccontextmanager
+async def _get_test_session():
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=False)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    sm = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
+    async with sm() as session:
+        yield session
+    await engine.dispose()
+
+
+def test_patterns_agricultural_sholi_oramiz():
+    """Verify local classifier recognizes sholi o'ramiz harvesting services."""
+    res = classify_text("sholi õramiz tel 97 787 96 21")
+    assert res.is_ad is True
+    assert res.score >= 50.0
+
+
+def test_multimodal_prompt_builder():
+    """Verify multimodal prompt builder produces clear instructions for image inspection."""
+    prompt_no_caption = build_multimodal_classification_prompt("")
+    assert "Examine the attached image" in prompt_no_caption
+    assert "?" not in prompt_no_caption  # No question mark confusion
+
+    prompt_with_caption = build_multimodal_classification_prompt("Aloqa uchun")
+    assert "<user_text>" in prompt_with_caption
+    assert "Aloqa uchun" in prompt_with_caption
+
+
+@pytest.mark.asyncio
+async def test_photo_multimodal_ad_deleted_by_ai(monkeypatch):
+    """
+    Verify that an incoming photo message without caption is passed to multimodal AI,
+    classified as AD, and automatically deleted.
+    """
+    monkeypatch.setattr(settings, "AI_ENABLED", True)
+    monkeypatch.setattr(settings, "AI_MODERATE_PHOTOS", True)
+
+    mock_provider = MockAIProvider()
+    mock_provider.queue_response(
+        AIClassificationResult(
+            classification="AD",
+            confidence=0.98,
+            category="service",
+            reason="Qishloq xo'jaligi xizmati (sholi o'rish) va telefon raqami reklama qilingan",
+        )
+    )
+    ai_moderation_service.set_provider(mock_provider)
+
+    try:
+        # Create mock photo message
+        msg = MagicMock()
+        msg.message_id = 9999
+        msg.chat.id = -100999111
+        msg.chat.type = ChatType.SUPERGROUP
+        msg.chat.title = "Test Group"
+
+        user = MagicMock()
+        user.id = 555444
+        user.username = "harvester_uz"
+        user.first_name = "Farmer"
+        user.last_name = None
+        user.is_bot = False
+        msg.from_user = user
+
+        msg.text = None
+        msg.caption = None
+        msg.media_group_id = None
+        msg.entities = None
+        msg.caption_entities = None
+        msg.video = None
+        msg.animation = None
+
+        photo = PhotoSize(file_id="photo_file_99", file_unique_id="uniq99", width=1024, height=768, file_size=40960)
+        msg.photo = [photo]
+
+        bot = AsyncMock()
+        bot.get_chat_member.return_value.status = ChatMemberStatus.MEMBER
+        bot.get_me.return_value.username = "ad_bot"
+
+        # Mock download to return valid JPEG bytes
+        async def mock_download(file_id, destination):
+            img = Image.new("RGB", (100, 100), color="blue")
+            buf = io.BytesIO()
+            img.save(buf, format="JPEG")
+            destination.write(buf.getvalue())
+
+        bot.download.side_effect = mock_download
+
+        async with _get_test_session() as session:
+            deleted = await process_group_message(bot, msg, session)
+
+            assert deleted is True
+            bot.delete_message.assert_called_once_with(chat_id=-100999111, message_id=9999)
+            assert mock_provider.call_count == 1
+    finally:
+        ai_moderation_service.set_provider(None)
+

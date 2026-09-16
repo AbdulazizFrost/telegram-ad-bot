@@ -78,7 +78,7 @@ async def analyze_message_multimodal(bot: Bot, message: Message) -> UnifiedModer
             target_message_ids=album_res.message_ids,
             is_album=True,
             is_album_leader=is_leader,
-            metadata={"items_count": album_res.items_count, "media_group_id": album_res.media_group_id}
+            metadata={"items_count": album_res.items_count, "media_group_id": album_res.media_group_id, **album_res.metadata}
         )
 
     # Case 2: Photo Message

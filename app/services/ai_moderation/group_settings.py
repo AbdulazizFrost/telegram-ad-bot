@@ -55,6 +55,40 @@ async def is_ai_moderation_enabled(session: AsyncSession, chat_id: int) -> bool:
         return False
 
 
+async def is_photo_ai_moderation_enabled(session: AsyncSession, chat_id: int) -> bool:
+    """
+    Check if multimodal AI moderation is enabled for incoming photos.
+    - If global settings.AI_ENABLED is False -> False.
+    - If global settings.AI_MODERATE_PHOTOS is False -> fallback to is_ai_moderation_enabled.
+    - For photos, multimodal AI is active by default UNLESS a group administrator
+      has explicitly disabled AI for this group (value is '0', 'false', 'off', or 'no').
+    """
+    if not settings.AI_ENABLED:
+        return False
+    if not getattr(settings, "AI_MODERATE_PHOTOS", True):
+        return await is_ai_moderation_enabled(session, chat_id)
+
+    now = time.monotonic()
+    cached = _GROUP_AI_CACHE.get(chat_id)
+    if cached and now < cached[1]:
+        return cached[0]
+
+    key = f"group_{chat_id}_ai_enabled"
+    try:
+        setting_obj = await session.get(Setting, key)
+        if setting_obj is not None:
+            val = setting_obj.value.strip().lower()
+            enabled = val in ("1", "true", "yes", "on")
+        else:
+            # By default for photos, if global AI is on, photos are inspected
+            enabled = True
+
+        _GROUP_AI_CACHE[chat_id] = (enabled, now + CACHE_TTL)
+        return enabled
+    except Exception as e:
+        logger.error(f"Error querying photo AI status for chat {chat_id}: {e}")
+        return True
+
 
 async def set_ai_moderation_enabled(session: AsyncSession, chat_id: int, enabled: bool) -> None:
     """

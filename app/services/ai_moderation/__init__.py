@@ -12,6 +12,7 @@ from app.services.ai_moderation.limiter import AIRateLimiter, ai_rate_limiter
 from app.services.ai_moderation.escalation import should_escalate_to_ai
 from app.services.ai_moderation.group_settings import (
     is_ai_moderation_enabled,
+    is_photo_ai_moderation_enabled,
     set_ai_moderation_enabled,
     clear_group_settings_cache,
 )
@@ -32,6 +33,7 @@ __all__ = [
     "ai_rate_limiter",
     "should_escalate_to_ai",
     "is_ai_moderation_enabled",
+    "is_photo_ai_moderation_enabled",
     "set_ai_moderation_enabled",
     "clear_group_settings_cache",
     "AIModerationService",

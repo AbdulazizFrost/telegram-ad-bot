@@ -78,11 +78,27 @@ class Settings(BaseSettings):
     AI_CACHE_TTL: int = Field(default=3600, description="In-memory cache TTL in seconds for AI responses")
     AI_MAX_CONCURRENT: int = Field(default=3, description="Maximum concurrent AI API calls")
     AI_RATE_LIMIT_RPM: int = Field(default=12, description="Requests per minute rate limit for AI API calls")
+    AI_MODERATE_PHOTOS: bool = Field(default=True, description="Whether to automatically run multimodal AI inspection on incoming photos when AI is active")
 
 
 import os
 
 settings = Settings()
+
+# Auto-detect AI API key from common environment variables (Render / Heroku / GCP)
+if not settings.AI_API_KEY:
+    settings.AI_API_KEY = (
+        os.environ.get("AI_API_KEY")
+        or os.environ.get("GEMINI_API_KEY")
+        or os.environ.get("GOOGLE_API_KEY")
+        or ""
+    ).strip()
+
+# Auto-enable AI if API key is provided and AI_ENABLED was not explicitly forced off
+if settings.AI_API_KEY and not settings.AI_ENABLED:
+    ai_env_val = os.environ.get("AI_ENABLED", "").strip().lower()
+    if ai_env_val not in ("0", "false", "no", "off"):
+        settings.AI_ENABLED = True
 
 # Auto-detect Render external URL if WEBHOOK_URL is not explicitly configured
 if not settings.WEBHOOK_URL and os.environ.get("RENDER_EXTERNAL_URL"):

@@ -48,6 +48,7 @@ class AlbumAnalysisResult:
     extracted_links: List[str] = field(default_factory=list)
     media_type: str = "album"
     items_count: int = 0
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 class AlbumManager:
@@ -165,6 +166,7 @@ class AlbumManager:
 
         # Process at most 2 media items if no ad was detected in caption
         media_checked = 0
+        first_image_bytes = None
         for msg in entry.messages:
             if media_checked >= 2:
                 break
@@ -172,6 +174,8 @@ class AlbumManager:
                 res = await analyze_photo_message(bot, msg.photo, caption="")
                 if res.ocr_text:
                     ocr_texts.append(res.ocr_text)
+                if not first_image_bytes and res.metadata and res.metadata.get("image_bytes"):
+                    first_image_bytes = res.metadata.get("image_bytes")
                 media_checked += 1
             elif msg.video:
                 res = await analyze_video_message(bot, msg.video, caption="")
@@ -194,6 +198,10 @@ class AlbumManager:
         if classification.is_ad:
             reason = f"[Albom / {len(entry.messages)} ta fayl] {classification.reason}"
 
+        album_meta = {"items_count": len(entry.messages)}
+        if first_image_bytes:
+            album_meta["image_bytes"] = first_image_bytes
+
         return AlbumAnalysisResult(
             is_ad=classification.is_ad,
             score=classification.score,
@@ -208,7 +216,8 @@ class AlbumManager:
             extracted_phones=classification.extracted_phones,
             extracted_links=classification.extracted_links,
             media_type="album",
-            items_count=len(entry.messages)
+            items_count=len(entry.messages),
+            metadata=album_meta
         )
 
 

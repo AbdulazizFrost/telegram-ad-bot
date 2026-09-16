@@ -107,6 +107,8 @@ HIGH_SALE_PATTERNS = [
     "arenda kvartira", "kvartira arenda", "arenda", "kurslarimizga qabul", "qabul boshlandi",
     # Agricultural / seasonal field labor & harvesting (+50)
     "sholi yer bor", "sholi bor", "sholi o'rish", "sholi orish", "sholi o'romon", "sholi oromon",
+    "sholi o'ramiz", "sholi oramiz", "sholi õramiz", "sholi o'radigan", "sholi oradigan",
+    "kombayn xizmati", "kombayn bor", "kombayn", "press bosamiz", "presslash", "traktor xizmati", "yer haydaymiz",
     "o'roq o'rish", "oroq orish", "o'roq o'romon", "oroq oromon", "o'romon deganlar", "oromon deganlar",
     "o'romon", "oromon", "qo'l o'roq", "qol oroq", "o'roqchilar kerak", "oroqchilar kerak", "o'roqchi kerak",
     "paxta terish", "terimchilar kerak", "paxtakor kerak",

@@ -18,6 +18,7 @@ from app.services.subscription_service import get_or_create_user, has_active_sub
 from app.services.ai_moderation import (
     should_escalate_to_ai,
     is_ai_moderation_enabled,
+    is_photo_ai_moderation_enabled,
     ai_moderation_service,
 )
 from app.utils.time import now_utc, is_past_24_hours, next_available_free_ad_time, format_tashkent
@@ -182,16 +183,25 @@ async def process_group_message(bot: Bot, message: Message, session: AsyncSessio
         # Tier 2: Check if message is suspicious/borderline and group has AI enabled
         eval_text = decision.combined_text or original_text
         has_photo_bytes = bool(decision.metadata and decision.metadata.get("image_bytes"))
-        needs_ai = should_escalate_to_ai(
-            raw_text=eval_text,
-            local_score=decision.score,
-            threshold=settings.AD_DETECTION_THRESHOLD,
-            extracted_phones=decision.extracted_phones,
-            extracted_links=decision.extracted_links,
-            detected_locations=decision.detected_locations,
-        ) or has_photo_bytes
-        if needs_ai and await is_ai_moderation_enabled(session, chat_id):
-            logger.info(f"Escalating suspicious message {message.message_id} in {chat_id} to Tier 2 AI...")
+
+        # For photos: multimodal AI is active if global AI is on (unless group explicitly turned AI off)
+        # For text: AI is active if explicitly enabled for the group
+        if has_photo_bytes:
+            ai_allowed = await is_photo_ai_moderation_enabled(session, chat_id)
+            needs_ai = True
+        else:
+            ai_allowed = await is_ai_moderation_enabled(session, chat_id)
+            needs_ai = should_escalate_to_ai(
+                raw_text=eval_text,
+                local_score=decision.score,
+                threshold=settings.AD_DETECTION_THRESHOLD,
+                extracted_phones=decision.extracted_phones,
+                extracted_links=decision.extracted_links,
+                detected_locations=decision.detected_locations,
+            )
+
+        if needs_ai and ai_allowed:
+            logger.info(f"Escalating message {message.message_id} in {chat_id} (media={decision.media_type}, photo_bytes={has_photo_bytes}) to Tier 2 AI...")
             ai_result = await ai_moderation_service.evaluate_message(
                 text=eval_text,
                 chat_id=chat_id,

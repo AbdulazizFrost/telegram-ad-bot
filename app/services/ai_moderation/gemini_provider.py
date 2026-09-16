@@ -12,7 +12,11 @@ from app.services.ai_moderation.base import (
     VALID_CLASSIFICATIONS,
     VALID_CATEGORIES,
 )
-from app.services.ai_moderation.prompt import SYSTEM_PROMPT, build_classification_prompt
+from app.services.ai_moderation.prompt import (
+    SYSTEM_PROMPT,
+    build_classification_prompt,
+    build_multimodal_classification_prompt,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -49,21 +53,29 @@ class GeminiProvider(BaseAIProvider):
             f"?key={self.api_key}"
         )
 
-        prompt_text = content.text or "(Quyidagi rasmda tijoriy reklama, xizmat yoki e'lon bormi? Rasm matnini va mazmunini tahlil qiling.)"
-        user_prompt = build_classification_prompt(prompt_text)
         user_parts = []
+        img_bytes = (content.metadata or {}).get("image_bytes") if content.metadata else None
 
         # Multimodal Vision support: if image bytes are present, pass to Gemini Vision
-        img_bytes = (content.metadata or {}).get("image_bytes") if content.metadata else None
         if img_bytes:
             import base64
+            # Determine MIME type from magic bytes
+            mime = "image/jpeg"
+            if img_bytes.startswith(b"\x89PNG"):
+                mime = "image/png"
+            elif img_bytes.startswith(b"RIFF") and b"WEBP" in img_bytes[:16]:
+                mime = "image/webp"
+
             b64_str = base64.b64encode(img_bytes).decode("utf-8")
             user_parts.append({
                 "inlineData": {
-                    "mimeType": "image/jpeg",
+                    "mimeType": mime,
                     "data": b64_str
                 }
             })
+            user_prompt = build_multimodal_classification_prompt(content.text or "")
+        else:
+            user_prompt = build_classification_prompt(content.text or "")
 
         user_parts.append({"text": user_prompt})
 
